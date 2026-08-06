@@ -1,0 +1,332 @@
+:root {
+    --espol-blue: #001C43;
+    --espol-blue-2: #123B68;
+    --interactive-blue: #1677B8;
+    --tech-cyan: #38A9E0;
+    --surface: #FFFFFF;
+    --background: #F4F7FA;
+    --text: #102A43;
+    --muted: #627D98;
+    --border: #D9E2EC;
+    --shadow: 0 14px 34px rgba(0, 28, 67, 0.10);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+}
+
+html, body, [class*="css"] {
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+.stApp {
+    background:
+        radial-gradient(circle at 86% 8%, rgba(56, 169, 224, 0.10), transparent 24rem),
+        var(--background);
+    color: var(--text);
+}
+
+.block-container {
+    max-width: 1180px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+[data-testid="stSidebar"] {
+    background: var(--espol-blue);
+    border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-testid="stSidebar"] * {
+    color: #FFFFFF;
+}
+
+[data-testid="stSidebar"] img {
+    max-height: 185px;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+[data-testid="stSidebarNav"] a {
+    border-radius: 10px;
+    margin-bottom: 3px;
+}
+
+[data-testid="stSidebarNav"] a:hover {
+    background: rgba(255,255,255,0.10);
+}
+
+[data-testid="stSidebarNav"] a[aria-current="page"] {
+    background: rgba(56,169,224,0.24);
+    border-left: 3px solid var(--tech-cyan);
+}
+
+.sidebar-brand {
+    padding: 0.25rem 0.45rem 0.4rem;
+}
+
+.sidebar-brand__name {
+    font-size: 1.42rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.sidebar-brand__tagline {
+    color: rgba(255,255,255,0.72) !important;
+    font-size: 0.86rem;
+    margin-top: 0.15rem;
+}
+
+.sidebar-brand__module {
+    display: inline-block;
+    margin-top: 0.85rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 999px;
+    font-size: 0.74rem;
+    color: #FFFFFF !important;
+}
+
+.ephilab-header {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 245px;
+    padding: 2.5rem 3rem;
+    margin-bottom: 1.8rem;
+    background: linear-gradient(125deg, var(--espol-blue), var(--espol-blue-2));
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.ephilab-header::after {
+    content: "";
+    position: absolute;
+    right: -7rem;
+    bottom: -10rem;
+    width: 24rem;
+    height: 24rem;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 50%;
+}
+
+.ephilab-header__content {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+}
+
+.ephilab-header__eyebrow {
+    color: var(--tech-cyan);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.75rem;
+}
+
+.ephilab-header h1 {
+    color: #FFFFFF;
+    font-size: clamp(2.6rem, 6vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+    margin: 0;
+}
+
+.ephilab-header p {
+    color: rgba(255,255,255,0.78);
+    font-size: 1.08rem;
+    line-height: 1.65;
+    max-width: 690px;
+    margin: 1rem 0 1.25rem;
+}
+
+.ephilab-header__badge {
+    display: inline-flex;
+    padding: 0.5rem 0.85rem;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 999px;
+    color: #FFFFFF;
+    font-size: 0.82rem;
+    font-weight: 650;
+}
+
+.ephilab-header__mark {
+    position: relative;
+    z-index: 2;
+    color: rgba(255,255,255,0.11);
+    font-family: Georgia, serif;
+    font-size: 12rem;
+    line-height: 1;
+    transform: translateY(0.3rem);
+}
+
+.intro-panel {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 3rem;
+    align-items: end;
+    padding: 1.5rem 0 1.2rem;
+}
+
+.intro-panel h2 {
+    margin: 0.35rem 0 0;
+    color: var(--text);
+    font-size: clamp(1.65rem, 3vw, 2.4rem);
+    letter-spacing: -0.035em;
+}
+
+.intro-panel p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.section-kicker {
+    color: var(--interactive-blue);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+}
+
+.section-kicker--light {
+    color: var(--tech-cyan);
+}
+
+.feature-card,
+.placeholder-card {
+    height: 100%;
+    padding: 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 22px rgba(0,28,67,0.055);
+}
+
+.feature-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.feature-card__icon {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.55rem;
+    background: rgba(22,119,184,0.10);
+    color: var(--interactive-blue);
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.feature-card__status,
+.placeholder-card__version {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.feature-card h3,
+.placeholder-card h3 {
+    margin: 1rem 0 0.45rem;
+    color: var(--text);
+    font-size: 1.14rem;
+}
+
+.feature-card p,
+.placeholder-card p {
+    color: var(--muted);
+    line-height: 1.65;
+    margin: 0;
+}
+
+.feature-card--accent {
+    background: linear-gradient(145deg, #FFFFFF, #EAF6FC);
+    border-color: rgba(56,169,224,0.45);
+}
+
+.placeholder-card {
+    margin-bottom: 1.2rem;
+    border-left: 5px solid var(--interactive-blue);
+}
+
+.module-hero {
+    padding: 2.2rem;
+    background: linear-gradient(135deg, var(--espol-blue), #0A4A78);
+    color: #FFFFFF;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.module-hero h2 {
+    color: #FFFFFF;
+    font-size: 2.7rem;
+    letter-spacing: -0.045em;
+    margin: 0.4rem 0 0.7rem;
+}
+
+.module-hero p {
+    color: rgba(255,255,255,0.78);
+    line-height: 1.7;
+}
+
+.module-hero__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 1.25rem;
+}
+
+.module-hero__tags span {
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 999px;
+    color: #FFFFFF;
+    font-size: 0.76rem;
+}
+
+.stButton > button,
+[data-testid="stPageLink-NavLink"] {
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+}
+
+.ephilab-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.ephilab-footer strong {
+    color: var(--espol-blue);
+}
+
+@media (max-width: 800px) {
+    .ephilab-header {
+        min-height: auto;
+        padding: 2rem 1.5rem;
+    }
+
+    .ephilab-header__mark {
+        display: none;
+    }
+
+    .intro-panel {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .ephilab-footer {
+        flex-direction: column;
+    }
+}
