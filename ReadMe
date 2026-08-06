@@ -1,1 +1,70 @@
+Estructura
 
+ephilab/
+│
+├── app.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+│
+├── assets/
+│   ├── logos/
+│   │   ├── logo_espol.png
+│   │   ├── logo_ephilab.png
+│   │   └── logo_ephikart.png
+│   │
+│   ├── images/
+│   │   ├── home_banner.png
+│   │   └── ephikart_banner.png
+│   │
+│   └── styles/
+│       └── main.css
+│
+├── views/
+│   ├── home.py
+│   ├── module_selector.py
+│   └── about.py
+│
+├── modules/
+│   └── ephikart/
+│       ├── home.py
+│       ├── prediction.py
+│       ├── experiment.py
+│       ├── fizziq.py
+│       ├── comparison.py
+│       └── results.py
+│
+├── core/
+│   ├── app_config.py
+│   ├── theme.py
+│   ├── navigation.py
+│   └── session_state.py
+│
+├── components/
+│   ├── header.py
+│   ├── cards.py
+│   ├── metric_bar.py
+│   ├── speedometer.py
+│   ├── dynamic_chart.py
+│   ├── parameter_panel.py
+│   └── footer.py
+│
+├── physics/
+│   └── ephikart/
+│       ├── model.py
+│       ├── simulation.py
+│       ├── energy.py
+│       └── classification.py
+│
+├── data/
+│   ├── examples/
+│   │   └── fizziq_example.csv
+│   └── templates/
+│       └── ephikart_template.xlsx
+│
+└── utils/
+    ├── csv_reader.py
+    ├── data_validation.py
+    ├── plotting.py
+    ├── formatting.py
+    └── export.py
