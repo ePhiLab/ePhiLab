@@ -1,8 +1,5 @@
-streamlit==1.49.1
-pandas==2.2.3
-numpy==2.2.6
-scipy==1.15.3
-sympy==1.14.0
-plotly==6.3.0
-statsmodels==0.14.5
-openpyxl==3.1.5
+streamlit>=1.41,<2.0
+plotly>=5.24,<7.0
+pandas>=2.2,<3.0
+numpy>=2.0,<3.0
+openpyxl>=3.1,<4.0
