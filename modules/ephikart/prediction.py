@@ -451,6 +451,10 @@ def build_energy_chart(
 
 title_column, reset_column = st.columns([6, 1])
 
+##*****************************
+# 1. configura el movimiento
+##**************************
+
 with title_column:
     st.markdown("## 1. Configura el movimiento")
 
@@ -574,7 +578,9 @@ except ValueError as error:
     st.error(str(error))
     st.stop()
 
-
+##************************************
+##2. Instante de observación
+##************************************
 st.markdown("## 2. Instante de observación")
 
 with st.container(border=True):
@@ -624,7 +630,9 @@ state = instantaneous_state(
 
 release_time = simulation["release_time"]
 
-
+##***********************************
+## 3. Estado instantaneo
+##*****************************************
 st.markdown("## 3. Estado instantáneo")
 
 metric_columns = st.columns(5, gap="medium")
@@ -705,36 +713,7 @@ with position_column:
             "responsive": True,
         },
     )
-    initial_mechanical_energy = float(
-    simulation["mechanical_energy"][0]
-    )
 
-    expected_mechanical_energy = (
-        initial_mechanical_energy
-        + state["friction_work"]
-    )
-
-    energy_balance_error = (
-        state["mechanical_energy"]
-        - expected_mechanical_energy
-    )
-
-    balance_columns = st.columns(3)
-
-    balance_columns[0].metric(
-        "Energía mecánica inicial",
-        f"{initial_mechanical_energy:.3f} J",
-    )
-
-    balance_columns[1].metric(
-        "Energía mecánica actual",
-        f"{state['mechanical_energy']:.3f} J",
-    )
-
-    balance_columns[2].metric(
-        "Error del balance",
-        f"{energy_balance_error:.4f} J",
-    )
 
 
 
