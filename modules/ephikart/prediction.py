@@ -810,27 +810,66 @@ with gauge_column:
             """,
             unsafe_allow_html=True,
         )
+## ******************************************************
+## BALANCE ENERGETICO
+##****************************************************
+    st.markdown("## 4. Balance energético")
 
-st.markdown("## 4. Balance energético")
+    with st.container(border=True):
 
-with st.container(border=True):
+    # ---------------------------------------------------------
+    # Energía mecánica inicial y energía mecánica actual
+    # ---------------------------------------------------------
 
-    energy_figure = build_energy_chart(
-        kinetic_energy=state["kinetic_energy"],
-        elastic_energy=state["elastic_energy"],
-        friction_work=state["friction_work"],
-        mechanical_energy=state["mechanical_energy"],
-        observation_time=state["time"],
-    )
+        initial_mechanical_energy = float(
+            simulation["mechanical_energy"][0]
+        )
 
-    st.plotly_chart(
-        energy_figure,
-        use_container_width=True,
-        config={
-            "displaylogo": False,
-            "responsive": True,
-        },
-    )
+        current_mechanical_energy = float(
+            state["mechanical_energy"]
+        )
+
+        energy_info_columns = st.columns(2, gap="medium")
+
+        with energy_info_columns[0]:
+            st.metric(
+                label="Energía mecánica inicial del sistema",
+                value=f"{initial_mechanical_energy:.3f} J",
+                border=True,
+            )
+
+        with energy_info_columns[1]:
+            st.metric(
+                label=(
+                    "Energía mecánica en "
+                    f"t = {state['time']:.2f} s"
+                ),
+                value=f"{current_mechanical_energy:.3f} J",
+                border=True,
+            )
+
+        # ---------------------------------------------------------
+        ## Gráfico energia 
+        # ---------------------------------------------------------
+
+        energy_figure = build_energy_chart(
+            kinetic_energy=state["kinetic_energy"],
+            elastic_energy=state["elastic_energy"],
+            friction_work=state["friction_work"],
+            mechanical_energy=state["mechanical_energy"],
+            observation_time=state["time"],
+        )
+
+        st.plotly_chart(
+            energy_figure,
+            use_container_width=True,
+            config={
+                "displaylogo": False,
+                "responsive": True,
+            },
+        )
+
+#************************************************************
 
 with st.expander("Modelo físico utilizado"):
     st.markdown(
