@@ -779,6 +779,26 @@ with gauge_column:
             unsafe_allow_html=True,
         )
 
+st.markdown("## 4. Balance energético")
+
+with st.container(border=True):
+
+    energy_figure = build_energy_chart(
+        kinetic_energy=state["kinetic_energy"],
+        elastic_energy=state["elastic_energy"],
+        friction_work=state["friction_work"],
+        mechanical_energy=state["mechanical_energy"],
+        observation_time=state["time"],
+    )
+
+    st.plotly_chart(
+        energy_figure,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "responsive": True,
+        },
+    )
 
 with st.expander("Modelo físico utilizado"):
     st.markdown(
