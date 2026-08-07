@@ -346,7 +346,108 @@ def build_speedometer(
     )
 
     return figure
+def build_energy_chart(
+    kinetic_energy: float,
+    elastic_energy: float,
+    friction_work: float,
+    mechanical_energy: float,
+    observation_time: float,
+) -> go.Figure:
+    """
+    Gráfico de barras de energía correspondiente
+    al instante seleccionado.
+    """
 
+    labels = [
+        "Energía cinética",
+        "Energía elástica",
+        "Trabajo de fricción",
+        "Energía mecánica",
+    ]
+
+    values = [
+        kinetic_energy,
+        elastic_energy,
+        friction_work,
+        mechanical_energy,
+    ]
+
+    colors = [
+        "#1677B8",   # Azul interactivo
+        "#38A9E0",   # Celeste tecnológico
+        "#C0392B",   # Trabajo de fricción
+        "#001C43",   # Azul ESPOL
+    ]
+
+    figure = go.Figure()
+
+    figure.add_trace(
+        go.Bar(
+            x=labels,
+            y=values,
+            marker_color=colors,
+            text=[
+                f"{value:.3f} J"
+                for value in values
+            ],
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate=(
+                "%{x}"
+                "<br>%{y:.4f} J"
+                "<extra></extra>"
+            ),
+        )
+    )
+
+    figure.add_hline(
+        y=0,
+        line_width=1.5,
+        line_color="#627D98",
+    )
+
+    figure.update_layout(
+        title={
+            "text": (
+                "Balance energético "
+                f"· t = {observation_time:.2f} s"
+            ),
+            "x": 0.02,
+            "xanchor": "left",
+            "font": {
+                "size": 17,
+                "color": ESPOL_BLUE,
+            },
+        },
+        height=390,
+        margin={
+            "l": 20,
+            "r": 20,
+            "t": 65,
+            "b": 30,
+        },
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="#FFFFFF",
+        showlegend=False,
+        font={
+            "family": "Inter, Segoe UI, Arial",
+            "color": TEXT_COLOR,
+        },
+        xaxis={
+            "title": "",
+            "tickfont": {
+                "size": 12,
+                "color": TEXT_COLOR,
+            },
+        },
+        yaxis={
+            "title": "Energía / trabajo (J)",
+            "gridcolor": GRID_COLOR,
+            "zeroline": False,
+        },
+    )
+
+    return figure
 
 title_column, reset_column = st.columns([6, 1])
 
