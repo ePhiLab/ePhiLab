@@ -7,7 +7,7 @@ import streamlit as st
 from components.footer import render_footer
 from components.header import render_header
 from physics.ephikart.simulation import (
-    KinematicParameters,
+    ElasticKartParameters,
     instantaneous_state,
     simulate_motion,
 )
@@ -17,101 +17,234 @@ ESPOL_BLUE = "#001C43"
 SECONDARY_BLUE = "#123B68"
 INTERACTIVE_BLUE = "#1677B8"
 TECH_CYAN = "#38A9E0"
-GRID_COLOR = "rgba(98, 125, 152, 0.18)"
+
+POSITION_GREEN = "#16834B"
+ACCELERATION_RED = "#C0392B"
+
+TEXT_COLOR = "#102A43"
 MUTED_TEXT = "#627D98"
+GRID_COLOR = "rgba(98, 125, 152, 0.18)"
 
 
 render_header(
     eyebrow="e(Phi)Kart",
     title="Predicción del movimiento",
     subtitle=(
-        "Modifica las condiciones iniciales y observa, en tiempo real, cómo cambian "
-        "la posición, la velocidad y la aceleración del carrito."
+        "Simula el movimiento de un carrito impulsado por una liga "
+        "elástica y sometido a fricción."
     ),
-    badge="Simulación interactiva · v0.2",
-)
-
-st.info(
-    "Esta primera implementación usa un modelo de movimiento rectilíneo con "
-    "aceleración constante. En las siguientes iteraciones se sustituirá por el "
-    "modelo físico definitivo del carrito impulsado por ligas.",
-    icon="ℹ️",
+    badge="Modelo físico interactivo",
 )
 
 
-def format_signed(value: float, unit: str) -> str:
-    return f"{value:+.2f} {unit}"
+def reset_prediction() -> None:
+    """Restablece los valores iniciales de la página."""
+
+    keys_to_remove = [
+        "kart_initial_position",
+        "kart_initial_velocity",
+        "kart_natural_length",
+        "kart_initial_length",
+        "kart_spring_constant",
+        "kart_mass",
+        "kart_friction",
+        "kart_duration",
+        "kart_observation_time",
+    ]
+
+    for key in keys_to_remove:
+        st.session_state.pop(key, None)
 
 
-def normalized_progress(value: float, lower: float, upper: float) -> float:
-    if np.isclose(lower, upper):
-        return 0.0
-    return float(np.clip((value - lower) / (upper - lower), 0.0, 1.0))
-
-
-def render_value_bar(
-    label: str,
-    value: float,
-    unit: str,
-    lower: float,
-    upper: float,
-    help_text: str,
-) -> None:
-    st.markdown(f"**{label}**")
-    st.progress(normalized_progress(value, lower, upper), text=format_signed(value, unit))
-    st.caption(help_text)
-
-
-def build_timeseries_figure(
+def slice_until_time(
     time: np.ndarray,
     values: np.ndarray,
     observation_time: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Recorta una serie hasta el instante seleccionado."""
+
+    valid_mask = time <= observation_time
+
+    visible_time = time[valid_mask]
+    visible_values = values[valid_mask]
+
+    # Garantiza que aparezca al menos el primer punto.
+    if visible_time.size == 0:
+        visible_time = time[:1]
+        visible_values = values[:1]
+
+    return visible_time, visible_values
+
+
+def build_progressive_chart(
+    *,
+    complete_time: np.ndarray,
+    complete_values: np.ndarray,
+    observation_time: float,
     observation_value: float,
+    release_time: float | None,
     title: str,
     y_title: str,
+    line_name: str,
     line_color: str,
 ) -> go.Figure:
+    """
+    Construye una gráfica que solo muestra la curva hasta el tiempo observado.
+    """
+
+    visible_time, visible_values = slice_until_time(
+        complete_time,
+        complete_values,
+        observation_time,
+    )
+
     figure = go.Figure()
+
+    # Curva futura en gris tenue.
     figure.add_trace(
         go.Scatter(
-            x=time,
-            y=values,
+            x=complete_time,
+            y=complete_values,
             mode="lines",
-            name=title,
-            line={"color": line_color, "width": 4},
-            hovertemplate=f"t = %{{x:.2f}} s<br>{y_title} = %{{y:.3f}}<extra></extra>",
+            name="Trayectoria completa",
+            line={
+                "color": "rgba(98, 125, 152, 0.18)",
+                "width": 2,
+                "dash": "dot",
+            },
+            hoverinfo="skip",
+            showlegend=False,
         )
     )
+
+    # Parte ya recorrida de la curva.
+    figure.add_trace(
+        go.Scatter(
+            x=visible_time,
+            y=visible_values,
+            mode="lines",
+            name=line_name,
+            line={
+                "color": line_color,
+                "width": 4,
+            },
+            fill="tozeroy" if title == "Velocidad vs. tiempo" else None,
+            fillcolor=(
+                "rgba(22, 119, 184, 0.10)"
+                if title == "Velocidad vs. tiempo"
+                else None
+            ),
+            hovertemplate=(
+                "t = %{x:.2f} s"
+                f"<br>{y_title} = %{{y:.3f}}"
+                "<extra></extra>"
+            ),
+        )
+    )
+
+    # Punto del instante actual.
     figure.add_trace(
         go.Scatter(
             x=[observation_time],
             y=[observation_value],
             mode="markers",
-            name="Instante observado",
+            name="Instante actual",
             marker={
-                "size": 14,
-                "color": ESPOL_BLUE,
-                "line": {"color": "#FFFFFF", "width": 3},
+                "size": 13,
+                "color": line_color,
+                "line": {
+                    "color": "#FFFFFF",
+                    "width": 3,
+                },
             },
-            hovertemplate=f"t = %{{x:.2f}} s<br>{y_title} = %{{y:.3f}}<extra></extra>",
+            hovertemplate=(
+                "t = %{x:.2f} s"
+                f"<br>{y_title} = %{{y:.3f}}"
+                "<extra></extra>"
+            ),
         )
     )
+
     figure.add_vline(
         x=observation_time,
         line_width=1.5,
         line_dash="dash",
-        line_color=MUTED_TEXT,
+        line_color=INTERACTIVE_BLUE,
     )
+
+    figure.add_annotation(
+        x=observation_time,
+        y=0,
+        yref="paper",
+        text=f"{observation_time:.2f} s",
+        showarrow=False,
+        yshift=-30,
+        bgcolor=INTERACTIVE_BLUE,
+        bordercolor=INTERACTIVE_BLUE,
+        font={
+            "color": "#FFFFFF",
+            "size": 11,
+        },
+    )
+
+    if release_time is not None:
+        figure.add_vline(
+            x=release_time,
+            line_width=1.2,
+            line_dash="dash",
+            line_color="#303030",
+        )
+
+        figure.add_annotation(
+            x=release_time,
+            y=0.94,
+            yref="paper",
+            text=(
+                "La liga se suelta"
+                f"<br>t = {release_time:.2f} s"
+            ),
+            showarrow=False,
+            bgcolor="#FFFFFF",
+            bordercolor="#B8C4D0",
+            borderwidth=1,
+            borderpad=5,
+            font={
+                "color": TEXT_COLOR,
+                "size": 11,
+            },
+        )
+
     figure.update_layout(
-        height=430,
-        margin={"l": 15, "r": 15, "t": 35, "b": 15},
+        title={
+            "text": title,
+            "x": 0.02,
+            "xanchor": "left",
+            "font": {
+                "size": 17,
+                "color": ESPOL_BLUE,
+            },
+        },
+        height=410,
+        margin={
+            "l": 15,
+            "r": 15,
+            "t": 55,
+            "b": 45,
+        },
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#FFFFFF",
         showlegend=False,
-        hovermode="x unified",
-        font={"family": "Inter, Segoe UI, Arial", "color": ESPOL_BLUE},
+        hovermode="closest",
+        font={
+            "family": "Inter, Segoe UI, Arial",
+            "color": TEXT_COLOR,
+        },
         xaxis={
             "title": "Tiempo, t (s)",
+            "range": [
+                float(complete_time[0]),
+                float(complete_time[-1]),
+            ],
             "gridcolor": GRID_COLOR,
             "zerolinecolor": GRID_COLOR,
         },
@@ -121,222 +254,459 @@ def build_timeseries_figure(
             "zerolinecolor": GRID_COLOR,
         },
     )
+
     return figure
 
 
-def build_speedometer(speed: float, maximum_speed: float) -> go.Figure:
-    gauge_max = max(1.0, maximum_speed * 1.15)
-    first_limit = gauge_max * 0.45
-    second_limit = gauge_max * 0.75
+def build_speedometer(
+    velocity: float,
+    maximum_speed: float,
+) -> go.Figure:
+    """Construye el velocímetro sincronizado con el slider temporal."""
+
+    gauge_limit = max(1.0, maximum_speed * 1.15)
 
     figure = go.Figure(
         go.Indicator(
             mode="gauge+number",
-            value=speed,
-            number={"suffix": " m/s", "valueformat": ".2f", "font": {"size": 42}},
-            title={"text": "Velocidad instantánea", "font": {"size": 18}},
+            value=abs(velocity),
+            number={
+                "suffix": " m/s",
+                "valueformat": ".2f",
+                "font": {
+                    "size": 42,
+                    "color": ESPOL_BLUE,
+                },
+            },
+            title={
+                "text": "Velocidad instantánea",
+                "font": {
+                    "size": 18,
+                    "color": ESPOL_BLUE,
+                },
+            },
             gauge={
-                "axis": {"range": [0, gauge_max], "tickwidth": 1},
-                "bar": {"color": ESPOL_BLUE, "thickness": 0.30},
+                "shape": "angular",
+                "axis": {
+                    "range": [0, gauge_limit],
+                    "tickwidth": 1,
+                    "tickcolor": ESPOL_BLUE,
+                },
+                "bar": {
+                    "color": ESPOL_BLUE,
+                    "thickness": 0.25,
+                },
                 "bgcolor": "#FFFFFF",
                 "borderwidth": 0,
                 "steps": [
-                    {"range": [0, first_limit], "color": "rgba(56,169,224,0.18)"},
-                    {"range": [first_limit, second_limit], "color": "rgba(22,119,184,0.22)"},
-                    {"range": [second_limit, gauge_max], "color": "rgba(0,28,67,0.18)"},
+                    {
+                        "range": [0, gauge_limit * 0.45],
+                        "color": "rgba(56, 169, 224, 0.18)",
+                    },
+                    {
+                        "range": [
+                            gauge_limit * 0.45,
+                            gauge_limit * 0.75,
+                        ],
+                        "color": "rgba(22, 119, 184, 0.20)",
+                    },
+                    {
+                        "range": [
+                            gauge_limit * 0.75,
+                            gauge_limit,
+                        ],
+                        "color": "rgba(0, 28, 67, 0.16)",
+                    },
                 ],
                 "threshold": {
-                    "line": {"color": TECH_CYAN, "width": 5},
-                    "thickness": 0.8,
-                    "value": speed,
+                    "line": {
+                        "color": TECH_CYAN,
+                        "width": 5,
+                    },
+                    "thickness": 0.85,
+                    "value": abs(velocity),
                 },
             },
         )
     )
+
     figure.update_layout(
-        height=330,
-        margin={"l": 30, "r": 30, "t": 55, "b": 15},
+        height=325,
+        margin={
+            "l": 30,
+            "r": 30,
+            "t": 60,
+            "b": 10,
+        },
         paper_bgcolor="rgba(0,0,0,0)",
-        font={"family": "Inter, Segoe UI, Arial", "color": ESPOL_BLUE},
+        font={
+            "family": "Inter, Segoe UI, Arial",
+            "color": TEXT_COLOR,
+        },
     )
+
     return figure
 
 
-st.markdown("## 1. Configura el movimiento")
-with st.container(border=True):
-    left, right = st.columns(2, gap="large")
+title_column, reset_column = st.columns([6, 1])
 
-    with left:
+with title_column:
+    st.markdown("## 1. Configura el movimiento")
+
+with reset_column:
+    st.button(
+        "↻ Reiniciar",
+        use_container_width=True,
+        on_click=reset_prediction,
+    )
+
+
+with st.container(border=True):
+    left_column, right_column = st.columns(2, gap="large")
+
+    with left_column:
         initial_position = st.slider(
             "Posición inicial, x₀ (m)",
-            min_value=-2.0,
-            max_value=2.0,
+            min_value=-1.0,
+            max_value=1.0,
             value=0.0,
-            step=0.05,
-            help="Ubicación del carrito en el instante inicial.",
+            step=0.01,
+            key="kart_initial_position",
+            help="Posición desde la cual comienza el carrito.",
         )
+
         initial_velocity = st.slider(
             "Velocidad inicial, v₀ (m/s)",
-            min_value=-5.0,
-            max_value=5.0,
-            value=1.5,
-            step=0.1,
-            help="Velocidad del carrito al comenzar la simulación.",
+            min_value=0.0,
+            max_value=3.0,
+            value=0.0,
+            step=0.05,
+            key="kart_initial_velocity",
+            help="Velocidad del carrito en el instante inicial.",
         )
 
-    with right:
-        acceleration = st.slider(
-            "Aceleración, a (m/s²)",
-            min_value=-5.0,
-            max_value=5.0,
-            value=-0.5,
-            step=0.1,
-            help="Tasa de cambio de la velocidad.",
+        natural_length = st.slider(
+            "Longitud natural de la liga, L₀ (m)",
+            min_value=0.05,
+            max_value=1.0,
+            value=0.20,
+            step=0.01,
+            key="kart_natural_length",
+            help=(
+                "Longitud de la liga cuando no se encuentra "
+                "estirada."
+            ),
         )
-        duration = st.slider(
-            "Duración de la simulación (s)",
+
+        initial_length = st.slider(
+            "Longitud estirada inicial, Lᵢ (m)",
+            min_value=float(natural_length),
+            max_value=2.0,
+            value=max(0.50, float(natural_length)),
+            step=0.01,
+            key="kart_initial_length",
+            help=(
+                "Longitud inicial de la liga antes de soltar "
+                "el carrito."
+            ),
+        )
+
+    with right_column:
+        spring_constant = st.slider(
+            "Constante elástica de la liga, k (N/m)",
             min_value=1.0,
-            max_value=15.0,
-            value=6.0,
+            max_value=50.0,
+            value=15.0,
             step=0.5,
-            help="Intervalo temporal mostrado en las gráficas.",
+            key="kart_spring_constant",
+            help="Rigidez efectiva de la liga.",
         )
 
-parameters = KinematicParameters(
+        friction_coefficient = st.slider(
+            "Coeficiente de fricción cinética, μ",
+            min_value=0.0,
+            max_value=0.50,
+            value=0.05,
+            step=0.01,
+            key="kart_friction",
+            help=(
+                "Coeficiente de fricción entre las ruedas "
+                "y la superficie."
+            ),
+        )
+
+        mass = st.slider(
+            "Masa del carrito, m (kg)",
+            min_value=0.05,
+            max_value=2.0,
+            value=0.25,
+            step=0.01,
+            key="kart_mass",
+            help="Masa total del carrito.",
+        )
+
+        duration = st.slider(
+            "Duración máxima de la simulación, tₘₐₓ (s)",
+            min_value=1.0,
+            max_value=20.0,
+            value=10.0,
+            step=0.5,
+            key="kart_duration",
+            help="Tiempo máximo que se mostrará en las gráficas.",
+        )
+
+
+parameters = ElasticKartParameters(
     initial_position=initial_position,
     initial_velocity=initial_velocity,
-    acceleration=acceleration,
+    natural_length=natural_length,
+    initial_length=initial_length,
+    spring_constant=spring_constant,
+    mass=mass,
+    friction_coefficient=friction_coefficient,
     duration=duration,
 )
-simulation = simulate_motion(parameters)
 
-st.markdown("## 2. Selecciona el instante de observación")
-observation_time = st.slider(
-    "Tiempo observado, t (s)",
-    min_value=0.0,
-    max_value=float(duration),
-    value=min(float(duration) / 2.0, float(duration)),
-    step=0.05,
-    help="Este control sincroniza las barras, las gráficas y el velocímetro.",
+try:
+    simulation = simulate_motion(parameters)
+except ValueError as error:
+    st.error(str(error))
+    st.stop()
+
+
+st.markdown("## 2. Instante de observación")
+
+with st.container(border=True):
+    observation_time = st.slider(
+        "Desplaza el control para construir la gráfica",
+        min_value=0.0,
+        max_value=float(duration),
+        value=min(
+            st.session_state.get(
+                "kart_observation_time",
+                0.0,
+            ),
+            float(duration),
+        ),
+        step=0.02,
+        key="kart_observation_time",
+        help=(
+            "Este slider controla simultáneamente la curva visible, "
+            "las métricas y el velocímetro."
+        ),
+    )
+
+    st.markdown(
+        f"""
+        <div style="
+            color: #102A43;
+            font-size: 1rem;
+            margin-top: -0.25rem;
+        ">
+            Tiempo actual:
+            <strong style="
+                color: #1677B8;
+                font-size: 1.35rem;
+            ">
+                {observation_time:.2f} s
+            </strong>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+state = instantaneous_state(
+    simulation,
+    observation_time,
 )
-state = instantaneous_state(parameters, observation_time)
 
-st.markdown("## 3. Estado instantáneo del carrito")
-metric_columns = st.columns(4, gap="medium")
-metric_columns[0].metric("Tiempo", f"{state['time']:.2f} s", border=True)
-metric_columns[1].metric("Posición", f"{state['position']:.2f} m", border=True)
-metric_columns[2].metric("Velocidad", f"{state['velocity']:.2f} m/s", border=True)
-metric_columns[3].metric("Aceleración", f"{state['acceleration']:.2f} m/s²", border=True)
+release_time = simulation["release_time"]
 
-bars_column, gauge_column = st.columns([1.15, 1], gap="large")
 
-with bars_column:
-    with st.container(border=True):
-        st.markdown("### Barras dinámicas")
+st.markdown("## 3. Estado instantáneo")
 
-        position_min = float(np.min(simulation["position"]))
-        position_max = float(np.max(simulation["position"]))
-        velocity_min = float(np.min(simulation["velocity"]))
-        velocity_max = float(np.max(simulation["velocity"]))
+metric_columns = st.columns(5, gap="medium")
 
-        render_value_bar(
-            "Posición",
-            state["position"],
-            "m",
-            position_min,
-            position_max,
-            "Escala relativa al recorrido calculado durante la simulación.",
-        )
-        render_value_bar(
-            "Velocidad",
-            state["velocity"],
-            "m/s",
-            velocity_min,
-            velocity_max,
-            "Escala relativa al intervalo de velocidades calculado.",
-        )
-        render_value_bar(
-            "Aceleración",
-            state["acceleration"],
-            "m/s²",
-            -5.0,
-            5.0,
-            "El centro de la escala corresponde a aceleración nula.",
-        )
+metric_columns[0].metric(
+    "Posición",
+    f"{state['position']:.3f} m",
+    border=True,
+)
+
+metric_columns[1].metric(
+    "Velocidad",
+    f"{state['velocity']:.3f} m/s",
+    border=True,
+)
+
+metric_columns[2].metric(
+    "Aceleración",
+    f"{state['acceleration']:.3f} m/s²",
+    border=True,
+)
+
+metric_columns[3].metric(
+    "Fuerza elástica",
+    f"{state['elastic_force']:.3f} N",
+    border=True,
+)
+
+metric_columns[4].metric(
+    "Fuerza de fricción",
+    f"{state['friction_force']:.3f} N",
+    border=True,
+)
+
+
+velocity_column, position_column = st.columns(2, gap="medium")
+
+with velocity_column:
+    velocity_figure = build_progressive_chart(
+        complete_time=simulation["time"],
+        complete_values=simulation["velocity"],
+        observation_time=state["time"],
+        observation_value=state["velocity"],
+        release_time=release_time,
+        title="Velocidad vs. tiempo",
+        y_title="Velocidad, v (m/s)",
+        line_name="v(t)",
+        line_color=INTERACTIVE_BLUE,
+    )
+
+    st.plotly_chart(
+        velocity_figure,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "responsive": True,
+        },
+    )
+
+with position_column:
+    position_figure = build_progressive_chart(
+        complete_time=simulation["time"],
+        complete_values=simulation["position"],
+        observation_time=state["time"],
+        observation_value=state["position"],
+        release_time=release_time,
+        title="Posición vs. tiempo",
+        y_title="Posición, x (m)",
+        line_name="x(t)",
+        line_color=POSITION_GREEN,
+    )
+
+    st.plotly_chart(
+        position_figure,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "responsive": True,
+        },
+    )
+
+
+acceleration_column, gauge_column = st.columns(
+    [1.35, 1],
+    gap="medium",
+)
+
+with acceleration_column:
+    acceleration_figure = build_progressive_chart(
+        complete_time=simulation["time"],
+        complete_values=simulation["acceleration"],
+        observation_time=state["time"],
+        observation_value=state["acceleration"],
+        release_time=release_time,
+        title="Aceleración vs. tiempo",
+        y_title="Aceleración, a (m/s²)",
+        line_name="a(t)",
+        line_color=ACCELERATION_RED,
+    )
+
+    st.plotly_chart(
+        acceleration_figure,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "responsive": True,
+        },
+    )
 
 with gauge_column:
     with st.container(border=True):
-        maximum_speed = float(np.max(np.abs(simulation["velocity"])))
+        maximum_speed = float(
+            np.max(np.abs(simulation["velocity"]))
+        )
+
         st.plotly_chart(
-            build_speedometer(state["speed"], maximum_speed),
+            build_speedometer(
+                velocity=state["velocity"],
+                maximum_speed=maximum_speed,
+            ),
             use_container_width=True,
-            config={"displayModeBar": False},
-        )
-        direction = "hacia adelante" if state["velocity"] > 0 else "hacia atrás"
-        if np.isclose(state["velocity"], 0.0, atol=0.02):
-            direction = "momentáneamente en reposo"
-        st.caption(
-            f"El carrito se encuentra **{direction}**. La rapidez máxima calculada "
-            f"en el intervalo es **{maximum_speed:.2f} m/s**."
+            config={
+                "displayModeBar": False,
+            },
         )
 
-st.markdown("## 4. Evolución temporal")
-position_tab, velocity_tab, acceleration_tab = st.tabs(
-    ["Posición", "Velocidad", "Aceleración"]
-)
+        if state["velocity"] > 0.01:
+            movement_state = "Movimiento hacia adelante"
+        elif state["velocity"] < -0.01:
+            movement_state = "Movimiento hacia atrás"
+        else:
+            movement_state = "Carrito detenido"
 
-with position_tab:
-    st.plotly_chart(
-        build_timeseries_figure(
-            simulation["time"],
-            simulation["position"],
-            state["time"],
-            state["position"],
-            "Posición",
-            "Posición, x (m)",
-            INTERACTIVE_BLUE,
-        ),
-        use_container_width=True,
-        config={"displaylogo": False, "responsive": True},
+        if state["band_active"]:
+            band_state = "Liga actuando"
+        else:
+            band_state = "Liga suelta"
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align: center;
+                color: #102A43;
+                line-height: 1.7;
+            ">
+                <strong>{movement_state}</strong><br>
+                <span style="color: #627D98;">
+                    {band_state}
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+with st.expander("Modelo físico utilizado"):
+    st.markdown(
+        """
+        Mientras la liga se encuentra estirada:
+
+        \[
+        F_e = k(L-L_0)
+        \]
+
+        La fuerza de fricción cinética es:
+
+        \[
+        F_f = -\\mu m g
+        \]
+
+        La aceleración instantánea se calcula mediante:
+
+        \[
+        a(t)=\\frac{F_e+F_f}{m}
+        \]
+
+        Cuando la longitud de la liga alcanza su longitud natural,
+        la fuerza elástica se vuelve cero. Desde ese instante, la
+        aceleración queda determinada únicamente por la fricción y
+        la velocidad disminuye linealmente hasta que el carrito se
+        detiene.
+        """
     )
 
-with velocity_tab:
-    st.plotly_chart(
-        build_timeseries_figure(
-            simulation["time"],
-            simulation["velocity"],
-            state["time"],
-            state["velocity"],
-            "Velocidad",
-            "Velocidad, v (m/s)",
-            TECH_CYAN,
-        ),
-        use_container_width=True,
-        config={"displaylogo": False, "responsive": True},
-    )
-
-with acceleration_tab:
-    st.plotly_chart(
-        build_timeseries_figure(
-            simulation["time"],
-            simulation["acceleration"],
-            state["time"],
-            state["acceleration"],
-            "Aceleración",
-            "Aceleración, a (m/s²)",
-            SECONDARY_BLUE,
-        ),
-        use_container_width=True,
-        config={"displaylogo": False, "responsive": True},
-    )
-
-with st.expander("Ecuaciones utilizadas en esta versión"):
-    st.latex(r"x(t)=x_0+v_0t+\frac{1}{2}at^2")
-    st.latex(r"v(t)=v_0+at")
-    st.latex(r"a(t)=a")
-    st.caption(
-        "Estas ecuaciones representan un movimiento rectilíneo con aceleración constante "
-        "y funcionan como base para validar la interacción visual de la plataforma."
-    )
 
 render_footer()
