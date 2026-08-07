@@ -85,6 +85,14 @@ def simulate_motion(
     band_length = np.zeros(parameters.samples, dtype=float)
 
     band_active = np.zeros(parameters.samples, dtype=bool)
+    # Energías y trabajo
+    kinetic_energy = np.zeros(parameters.samples, dtype=float)
+    elastic_energy = np.zeros(parameters.samples, dtype=float)
+    friction_work = np.zeros(parameters.samples, dtype=float)
+    mechanical_energy = np.zeros(parameters.samples, dtype=float)
+
+
+    
 
     position[0] = parameters.initial_position
     velocity[0] = parameters.initial_velocity
@@ -105,6 +113,25 @@ def simulate_motion(
         extension = max(
             current_length - parameters.natural_length,
             0.0,
+        )
+        # Energía cinética instantánea
+        kinetic_energy[index] = (
+            0.5
+            * parameters.mass
+            * velocity[index] ** 2
+        )
+
+        # Energía potencial elástica almacenada en la liga
+        elastic_energy[index] = (
+            0.5
+            * parameters.spring_constant
+            * extension ** 2
+        )
+
+        # Energía mecánica instantánea
+        mechanical_energy[index] = (
+            kinetic_energy[index]
+            + elastic_energy[index]
         )
 
         is_band_active = extension > 1e-9
@@ -162,8 +189,21 @@ def simulate_motion(
             next_velocity = 0.0
             next_position = position[index]
 
+        # Desplazamiento realizado durante este paso temporal
+        delta_x = next_position - position[index]
+
+        # Trabajo acumulado realizado por la fricción.
+        # Al oponerse al movimiento normalmente será negativo.
+        friction_work[index + 1] = (
+            friction_work[index]
+            + friction_force[index] * delta_x
+        )
+
+
         velocity[index + 1] = next_velocity
         position[index + 1] = next_position
+
+   
 
     # Calculamos el último estado.
     final_displacement = position[-1] - parameters.initial_position
@@ -177,6 +217,25 @@ def simulate_motion(
         band_length[-1] - parameters.natural_length,
         0.0,
     )
+    kinetic_energy[-1] = (
+        0.5
+        * parameters.mass
+        * velocity[-1] ** 2    
+    )
+
+    elastic_energy[-1] = (
+        0.5
+        * parameters.spring_constant
+        * final_extension ** 2
+    )
+
+    mechanical_energy[-1] = (
+        kinetic_energy[-1]
+        + elastic_energy[-1]
+    )
+
+
+
 
     band_active[-1] = final_extension > 1e-9
     elastic_force[-1] = parameters.spring_constant * final_extension
@@ -214,6 +273,10 @@ def simulate_motion(
         "friction_force": friction_force,
         "band_length": band_length,
         "band_active": band_active,
+        "kinetic_energy": kinetic_energy,
+        "elastic_energy": elastic_energy,
+        "friction_work": friction_work,
+        "mechanical_energy": mechanical_energy,
         "release_time": release_time,
         "release_position": release_position,
     }
@@ -265,4 +328,8 @@ def instantaneous_state(
         "friction_force": interpolate("friction_force"),
         "band_length": interpolate("band_length"),
         "band_active": bool(band_active_values[nearest_index]),
+        "kinetic_energy": interpolate("kinetic_energy"),
+        "elastic_energy": interpolate("elastic_energy"),
+        "friction_work": interpolate("friction_work"),
+        "mechanical_energy": interpolate("mechanical_energy"),
     }
