@@ -815,7 +815,7 @@ with gauge_column:
 ##****************************************************
 st.markdown("## 4. Balance energético")
 
- with st.container(border=True):
+with st.container(border=True):
 
     # ---------------------------------------------------------
     # Energía mecánica inicial y energía mecánica actual
