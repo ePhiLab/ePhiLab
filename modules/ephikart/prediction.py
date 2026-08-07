@@ -705,6 +705,38 @@ with position_column:
             "responsive": True,
         },
     )
+    initial_mechanical_energy = float(
+    simulation["mechanical_energy"][0]
+    )
+
+    expected_mechanical_energy = (
+        initial_mechanical_energy
+        + state["friction_work"]
+    )
+
+    energy_balance_error = (
+        state["mechanical_energy"]
+        - expected_mechanical_energy
+    )
+
+    balance_columns = st.columns(3)
+
+    balance_columns[0].metric(
+        "Energía mecánica inicial",
+        f"{initial_mechanical_energy:.3f} J",
+    )
+
+    balance_columns[1].metric(
+        "Energía mecánica actual",
+        f"{state['mechanical_energy']:.3f} J",
+    )
+
+    balance_columns[2].metric(
+        "Error del balance",
+        f"{energy_balance_error:.4f} J",
+    )
+
+
 
 
 acceleration_column, gauge_column = st.columns(
