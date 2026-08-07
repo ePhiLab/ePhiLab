@@ -330,3 +330,66 @@ html, body, [class*="css"] {
         flex-direction: column;
     }
 }
+
+/* ================================================================
+   PARCHE DE LEGIBILIDAD PARA CONTROLES STREAMLIT
+   ================================================================ */
+
+[data-testid="stMain"] {
+    color: #102A43 !important;
+}
+
+/* Etiquetas generales de widgets */
+[data-testid="stMain"] [data-testid="stWidgetLabel"],
+[data-testid="stMain"] [data-testid="stWidgetLabel"] p,
+[data-testid="stMain"] [data-testid="stWidgetLabel"] span,
+[data-testid="stMain"] [data-testid="stSlider"] label,
+[data-testid="stMain"] [data-testid="stSlider"] label p,
+[data-testid="stMain"] [data-testid="stSlider"] label span {
+    color: #102A43 !important;
+    opacity: 1 !important;
+    font-weight: 650 !important;
+}
+
+/* Texto mínimo y máximo bajo los sliders */
+[data-testid="stMain"] [data-testid="stSlider"] div,
+[data-testid="stMain"] [data-testid="stSlider"] span {
+    color: #102A43;
+}
+
+/* Valor mostrado sobre el control deslizante */
+[data-testid="stMain"] [data-baseweb="slider"] [role="slider"] {
+    color: #FFFFFF !important;
+}
+
+/* Texto de ayuda */
+[data-testid="stMain"] [data-testid="stTooltipIcon"] svg {
+    color: #1677B8 !important;
+    fill: #1677B8 !important;
+}
+
+/* Inputs numéricos asociados a sliders */
+[data-testid="stMain"] input {
+    color: #102A43 !important;
+    background-color: #FFFFFF !important;
+    border-color: #D9E2EC !important;
+}
+
+/* Títulos y textos del área principal */
+[data-testid="stMain"] h1,
+[data-testid="stMain"] h2,
+[data-testid="stMain"] h3,
+[data-testid="stMain"] h4,
+[data-testid="stMain"] p {
+    color: #102A43;
+}
+
+/* Excepción para el encabezado oscuro de e(Phi)Lab */
+[data-testid="stMain"] .ephilab-header h1,
+[data-testid="stMain"] .ephilab-header p,
+[data-testid="stMain"] .ephilab-header span,
+[data-testid="stMain"] .module-hero h2,
+[data-testid="stMain"] .module-hero p,
+[data-testid="stMain"] .module-hero span {
+    color: #FFFFFF !important;
+}
