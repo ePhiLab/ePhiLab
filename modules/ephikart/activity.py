@@ -1,5 +1,6 @@
 import streamlit as st
 
+from modules.ephikart.prediction import render_prediction
 from components.header import render_header
 from components.footer import render_footer
 from components.top_navigation import render_top_navigation
@@ -67,12 +68,9 @@ st.write(
     "Configura el sistema y analiza cómo esperas que se comporte "
     "el carrito antes de realizar el experimento."
 )
-
-st.page_link(
-    "modules/ephikart/prediction.py",
-    label="Abrir herramienta de predicción",
-    icon="📐",
-    use_container_width=True,
+render_prediction(
+    show_header=False,
+    show_footer=False,
 )
 
 if st.button(
