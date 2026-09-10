@@ -2,6 +2,7 @@ import streamlit as st
 
 from modules.ephikart.prediction import render_prediction
 from modules.ephikart.experiment import render_experiment
+from modules.ephikart.fizziq import render_fizziq
 from components.header import render_header
 from components.footer import render_footer
 from components.top_navigation import render_top_navigation
@@ -121,14 +122,11 @@ if st.session_state.ephikart_step >= 3:
     st.write(
         "Importa y analiza los datos obtenidos con FizziQ."
     )
-
-    st.page_link(
-        "modules/ephikart/fizziq.py",
-        label="Abrir análisis FizziQ",
-        icon="📊",
-        use_container_width=True,
+    render_fizziq(
+    show_header=False,
+    show_footer=False,
     )
-
+    
     if st.button(
         "Continuar a comparación",
         key="continue_comparison",
