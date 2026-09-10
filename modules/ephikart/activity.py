@@ -150,11 +150,9 @@ if st.session_state.ephikart_step >= 4:
         "Compara la predicción teórica con los datos experimentales."
     )
 
-    st.page_link(
-        "modules/ephikart/comparison.py",
-        label="Abrir comparación",
-        icon="⚖️",
-        use_container_width=True,
+    render_comparison(
+        show_header=False,
+        show_footer=False,
     )
 
     if st.button(
@@ -178,12 +176,9 @@ if st.session_state.ephikart_step >= 5:
         "Revisa los resultados finales y prepara la evidencia "
         "de la actividad."
     )
-
-    st.page_link(
-        "modules/ephikart/results.py",
-        label="Abrir resultados",
-        icon="📄",
-        use_container_width=True,
+    render_results(
+        show_header=False,
+        show_footer=False,
     )
 
     st.success("Has desbloqueado todas las etapas de ePhiKart.")
