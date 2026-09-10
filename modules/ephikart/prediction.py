@@ -445,7 +445,7 @@ def build_energy_chart(
         show_header: bool = True,
         show_footer: bool = True,
     ) -> None:
-    """Renderiza la herramienta de predicción de ePhiKart."""
+        """Renderiza la herramienta de predicción de ePhiKart."""
 
         if show_header:
             render_header(
