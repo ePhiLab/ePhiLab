@@ -3,6 +3,7 @@ from components.footer import render_footer
 from components.header import render_header
 from components.top_navigation import render_top_navigation
 
+render_top_navigation()
 render_header(
     eyebrow="e(Phi)Kart",
     title="Experimento",
