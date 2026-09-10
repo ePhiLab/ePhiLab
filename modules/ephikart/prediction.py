@@ -27,15 +27,6 @@ MUTED_TEXT = "#627D98"
 GRID_COLOR = "rgba(98, 125, 152, 0.18)"
 
 render_top_navigation()
-render_header(
-    eyebrow="e(Phi)Kart",
-    title="Predicción del movimiento",
-    subtitle=(
-        "Simula el movimiento de un carrito impulsado por una liga "
-        "elástica y sometido a fricción."
-    ),
-    badge="Modelo físico interactivo",
-)
 
 
 def reset_prediction() -> None:
@@ -449,436 +440,457 @@ def build_energy_chart(
     )
 
     return figure
+    
+    def render_prediction(
+        show_header: bool = True,
+        show_footer: bool = True,
+    ) -> None:
+    """Renderiza la herramienta de predicción de ePhiKart."""
 
-title_column, reset_column = st.columns([6, 1])
-
-##*****************************
-# 1. configura el movimiento
-##**************************
-
-with title_column:
-    st.markdown("## 1. Configura el movimiento")
-
-with reset_column:
-    st.button(
-        "↻ Reiniciar",
-        use_container_width=True,
-        on_click=reset_prediction,
-    )
+        if show_header:
+            render_header(
+                eyebrow="e(Phi)Kart",
+                title="Predicción del movimiento",
+                subtitle=(
+                    "Simula el movimiento de un carrito impulsado por una liga "
+                    "elástica y sometido a fricción."
+                ),
+                badge="Modelo físico interactivo",
+            )
 
 
-with st.container(border=True):
-    left_column, right_column = st.columns(2, gap="large")
-
-    with left_column:
-        initial_position = st.slider(
-            "Posición inicial, x₀ (m)",
-            min_value=-1.0,
-            max_value=1.0,
-            value=0.0,
-            step=0.01,
-            key="kart_initial_position",
-            help="Posición desde la cual comienza el carrito.",
+        title_column, reset_column = st.columns([6, 1])
+    
+        ##*****************************
+        # 1. configura el movimiento
+        ##**************************
+        
+        with title_column:
+            st.markdown("## 1. Configura el movimiento")
+        
+        with reset_column:
+            st.button(
+                "↻ Reiniciar",
+                use_container_width=True,
+                on_click=reset_prediction,
+            )
+        
+        
+        with st.container(border=True):
+            left_column, right_column = st.columns(2, gap="large")
+        
+            with left_column:
+                initial_position = st.slider(
+                    "Posición inicial, x₀ (m)",
+                    min_value=-1.0,
+                    max_value=1.0,
+                    value=0.0,
+                    step=0.01,
+                    key="kart_initial_position",
+                    help="Posición desde la cual comienza el carrito.",
+                )
+        
+                initial_velocity = st.slider(
+                    "Velocidad inicial, v₀ (m/s)",
+                    min_value=0.0,
+                    max_value=3.0,
+                    value=0.0,
+                    step=0.05,
+                    key="kart_initial_velocity",
+                    help="Velocidad del carrito en el instante inicial.",
+                )
+        
+                natural_length = st.slider(
+                    "Longitud natural de la liga, L₀ (m)",
+                    min_value=0.05,
+                    max_value=1.0,
+                    value=0.20,
+                    step=0.01,
+                    key="kart_natural_length",
+                    help=(
+                        "Longitud de la liga cuando no se encuentra "
+                        "estirada."
+                    ),
+                )
+        
+                initial_length = st.slider(
+                    "Longitud estirada inicial, Lᵢ (m)",
+                    min_value=float(natural_length),
+                    max_value=2.0,
+                    value=max(0.50, float(natural_length)),
+                    step=0.01,
+                    key="kart_initial_length",
+                    help=(
+                        "Longitud inicial de la liga antes de soltar "
+                        "el carrito."
+                    ),
+                )
+        
+            with right_column:
+                spring_constant = st.slider(
+                    "Constante elástica de la liga, k (N/m)",
+                    min_value=1.0,
+                    max_value=50.0,
+                    value=15.0,
+                    step=0.5,
+                    key="kart_spring_constant",
+                    help="Rigidez efectiva de la liga.",
+                )
+        
+                friction_coefficient = st.slider(
+                    "Coeficiente de fricción cinética, μ",
+                    min_value=0.0,
+                    max_value=0.50,
+                    value=0.05,
+                    step=0.01,
+                    key="kart_friction",
+                    help=(
+                        "Coeficiente de fricción entre las ruedas "
+                        "y la superficie."
+                    ),
+                )
+        
+                mass = st.slider(
+                    "Masa del carrito, m (kg)",
+                    min_value=0.05,
+                    max_value=2.0,
+                    value=0.25,
+                    step=0.01,
+                    key="kart_mass",
+                    help="Masa total del carrito.",
+                )
+        
+                duration = st.slider(
+                    "Duración máxima de la simulación, tₘₐₓ (s)",
+                    min_value=1.0,
+                    max_value=20.0,
+                    value=10.0,
+                    step=0.5,
+                    key="kart_duration",
+                    help="Tiempo máximo que se mostrará en las gráficas.",
+                )
+        
+        
+        parameters = ElasticKartParameters(
+            initial_position=initial_position,
+            initial_velocity=initial_velocity,
+            natural_length=natural_length,
+            initial_length=initial_length,
+            spring_constant=spring_constant,
+            mass=mass,
+            friction_coefficient=friction_coefficient,
+            duration=duration,
         )
-
-        initial_velocity = st.slider(
-            "Velocidad inicial, v₀ (m/s)",
-            min_value=0.0,
-            max_value=3.0,
-            value=0.0,
-            step=0.05,
-            key="kart_initial_velocity",
-            help="Velocidad del carrito en el instante inicial.",
+        
+        try:
+            simulation = simulate_motion(parameters)
+        except ValueError as error:
+            st.error(str(error))
+            st.stop()
+        
+        ##************************************
+        ##2. Instante de observación
+        ##************************************
+        st.markdown("## 2. Instante de observación")
+        
+        with st.container(border=True):
+            observation_time = st.slider(
+                "Desplaza el control para construir la gráfica",
+                min_value=0.0,
+                max_value=float(duration),
+                value=min(
+                    st.session_state.get(
+                        "kart_observation_time",
+                        0.0,
+                    ),
+                    float(duration),
+                ),
+                step=0.02,
+                key="kart_observation_time",
+                help=(
+                    "Este slider controla simultáneamente la curva visible, "
+                    "las métricas y el velocímetro."
+                ),
+            )
+        
+            st.markdown(
+                f"""
+                <div style="
+                    color: #102A43;
+                    font-size: 1rem;
+                    margin-top: -0.25rem;
+                ">
+                    Tiempo actual:
+                    <strong style="
+                        color: #1677B8;
+                        font-size: 1.35rem;
+                    ">
+                        {observation_time:.2f} s
+                    </strong>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        
+        
+        state = instantaneous_state(
+            simulation,
+            observation_time,
         )
-
-        natural_length = st.slider(
-            "Longitud natural de la liga, L₀ (m)",
-            min_value=0.05,
-            max_value=1.0,
-            value=0.20,
-            step=0.01,
-            key="kart_natural_length",
-            help=(
-                "Longitud de la liga cuando no se encuentra "
-                "estirada."
-            ),
-        )
-
-        initial_length = st.slider(
-            "Longitud estirada inicial, Lᵢ (m)",
-            min_value=float(natural_length),
-            max_value=2.0,
-            value=max(0.50, float(natural_length)),
-            step=0.01,
-            key="kart_initial_length",
-            help=(
-                "Longitud inicial de la liga antes de soltar "
-                "el carrito."
-            ),
-        )
-
-    with right_column:
-        spring_constant = st.slider(
-            "Constante elástica de la liga, k (N/m)",
-            min_value=1.0,
-            max_value=50.0,
-            value=15.0,
-            step=0.5,
-            key="kart_spring_constant",
-            help="Rigidez efectiva de la liga.",
-        )
-
-        friction_coefficient = st.slider(
-            "Coeficiente de fricción cinética, μ",
-            min_value=0.0,
-            max_value=0.50,
-            value=0.05,
-            step=0.01,
-            key="kart_friction",
-            help=(
-                "Coeficiente de fricción entre las ruedas "
-                "y la superficie."
-            ),
-        )
-
-        mass = st.slider(
-            "Masa del carrito, m (kg)",
-            min_value=0.05,
-            max_value=2.0,
-            value=0.25,
-            step=0.01,
-            key="kart_mass",
-            help="Masa total del carrito.",
-        )
-
-        duration = st.slider(
-            "Duración máxima de la simulación, tₘₐₓ (s)",
-            min_value=1.0,
-            max_value=20.0,
-            value=10.0,
-            step=0.5,
-            key="kart_duration",
-            help="Tiempo máximo que se mostrará en las gráficas.",
-        )
-
-
-parameters = ElasticKartParameters(
-    initial_position=initial_position,
-    initial_velocity=initial_velocity,
-    natural_length=natural_length,
-    initial_length=initial_length,
-    spring_constant=spring_constant,
-    mass=mass,
-    friction_coefficient=friction_coefficient,
-    duration=duration,
-)
-
-try:
-    simulation = simulate_motion(parameters)
-except ValueError as error:
-    st.error(str(error))
-    st.stop()
-
-##************************************
-##2. Instante de observación
-##************************************
-st.markdown("## 2. Instante de observación")
-
-with st.container(border=True):
-    observation_time = st.slider(
-        "Desplaza el control para construir la gráfica",
-        min_value=0.0,
-        max_value=float(duration),
-        value=min(
-            st.session_state.get(
-                "kart_observation_time",
-                0.0,
-            ),
-            float(duration),
-        ),
-        step=0.02,
-        key="kart_observation_time",
-        help=(
-            "Este slider controla simultáneamente la curva visible, "
-            "las métricas y el velocímetro."
-        ),
-    )
-
-    st.markdown(
-        f"""
-        <div style="
-            color: #102A43;
-            font-size: 1rem;
-            margin-top: -0.25rem;
-        ">
-            Tiempo actual:
-            <strong style="
-                color: #1677B8;
-                font-size: 1.35rem;
-            ">
-                {observation_time:.2f} s
-            </strong>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-state = instantaneous_state(
-    simulation,
-    observation_time,
-)
-
-release_time = simulation["release_time"]
-
-##***********************************
-## 3. Estado instantaneo
-##*****************************************
-st.markdown("## 3. Estado instantáneo")
-
-metric_columns = st.columns(5, gap="medium")
-
-metric_columns[0].metric(
-    "Posición",
-    f"{state['position']:.3f} m",
-    border=True,
-)
-
-metric_columns[1].metric(
-    "Velocidad",
-    f"{state['velocity']:.3f} m/s",
-    border=True,
-)
-
-metric_columns[2].metric(
-    "Aceleración",
-    f"{state['acceleration']:.3f} m/s²",
-    border=True,
-)
-
-metric_columns[3].metric(
-    "Fuerza elástica",
-    f"{state['elastic_force']:.3f} N",
-    border=True,
-)
-
-metric_columns[4].metric(
-    "Fuerza de fricción",
-    f"{state['friction_force']:.3f} N",
-    border=True,
-)
-
-
-velocity_column, position_column = st.columns(2, gap="medium")
-
-with velocity_column:
-    velocity_figure = build_progressive_chart(
-        complete_time=simulation["time"],
-        complete_values=simulation["velocity"],
-        observation_time=state["time"],
-        observation_value=state["velocity"],
-        release_time=release_time,
-        title="Velocidad vs. tiempo",
-        y_title="Velocidad, v (m/s)",
-        line_name="v(t)",
-        line_color=INTERACTIVE_BLUE,
-    )
-
-    st.plotly_chart(
-        velocity_figure,
-        use_container_width=True,
-        config={
-            "displaylogo": False,
-            "responsive": True,
-        },
-    )
-
-with position_column:
-    position_figure = build_progressive_chart(
-        complete_time=simulation["time"],
-        complete_values=simulation["position"],
-        observation_time=state["time"],
-        observation_value=state["position"],
-        release_time=release_time,
-        title="Posición vs. tiempo",
-        y_title="Posición, x (m)",
-        line_name="x(t)",
-        line_color=POSITION_GREEN,
-    )
-
-    st.plotly_chart(
-        position_figure,
-        use_container_width=True,
-        config={
-            "displaylogo": False,
-            "responsive": True,
-        },
-    )
-
-
-
-
-
-acceleration_column, gauge_column = st.columns(
-    [1.35, 1],
-    gap="medium",
-)
-
-with acceleration_column:
-    acceleration_figure = build_progressive_chart(
-        complete_time=simulation["time"],
-        complete_values=simulation["acceleration"],
-        observation_time=state["time"],
-        observation_value=state["acceleration"],
-        release_time=release_time,
-        title="Aceleración vs. tiempo",
-        y_title="Aceleración, a (m/s²)",
-        line_name="a(t)",
-        line_color=ACCELERATION_RED,
-    )
-
-    st.plotly_chart(
-        acceleration_figure,
-        use_container_width=True,
-        config={
-            "displaylogo": False,
-            "responsive": True,
-        },
-    )
-
-with gauge_column:
-    with st.container(border=True):
-        maximum_speed = float(
-            np.max(np.abs(simulation["velocity"]))
-        )
-
-        st.plotly_chart(
-            build_speedometer(
-                velocity=state["velocity"],
-                maximum_speed=maximum_speed,
-            ),
-            use_container_width=True,
-            config={
-                "displayModeBar": False,
-            },
-        )
-
-        if state["velocity"] > 0.01:
-            movement_state = "Movimiento hacia adelante"
-        elif state["velocity"] < -0.01:
-            movement_state = "Movimiento hacia atrás"
-        else:
-            movement_state = "Carrito detenido"
-
-        if state["band_active"]:
-            band_state = "Liga actuando"
-        else:
-            band_state = "Liga suelta"
-
-        st.markdown(
-            f"""
-            <div style="
-                text-align: center;
-                color: #102A43;
-                line-height: 1.7;
-            ">
-                <strong>{movement_state}</strong><br>
-                <span style="color: #627D98;">
-                    {band_state}
-                </span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-## ******************************************************
-## BALANCE ENERGETICO
-##****************************************************
-st.markdown("## 4. Balance energético")
-
-with st.container(border=True):
-
-    # ---------------------------------------------------------
-    # Energía mecánica inicial y energía mecánica actual
-    # ---------------------------------------------------------
-
-    initial_mechanical_energy = float(
-        simulation["mechanical_energy"][0]
-    )
-
-    current_mechanical_energy = float(
-        state["mechanical_energy"]
-    )
-
-    energy_info_columns = st.columns(2, gap="medium")
-
-    with energy_info_columns[0]:
-        st.metric(
-            label="Energía mecánica inicial del sistema",
-            value=f"{initial_mechanical_energy:.3f} J",
+        
+        release_time = simulation["release_time"]
+        
+        ##***********************************
+        ## 3. Estado instantaneo
+        ##*****************************************
+        st.markdown("## 3. Estado instantáneo")
+        
+        metric_columns = st.columns(5, gap="medium")
+        
+        metric_columns[0].metric(
+            "Posición",
+            f"{state['position']:.3f} m",
             border=True,
         )
-
-    with energy_info_columns[1]:
-        st.metric(
-            label=(
-                "Energía mecánica en "
-                f"t = {state['time']:.2f} s"
-            ),
-            value=f"{current_mechanical_energy:.3f} J",
+        
+        metric_columns[1].metric(
+            "Velocidad",
+            f"{state['velocity']:.3f} m/s",
             border=True,
         )
+        
+        metric_columns[2].metric(
+            "Aceleración",
+            f"{state['acceleration']:.3f} m/s²",
+            border=True,
+        )
+        
+        metric_columns[3].metric(
+            "Fuerza elástica",
+            f"{state['elastic_force']:.3f} N",
+            border=True,
+        )
+        
+        metric_columns[4].metric(
+            "Fuerza de fricción",
+            f"{state['friction_force']:.3f} N",
+            border=True,
+        )
+        
+        
+        velocity_column, position_column = st.columns(2, gap="medium")
+        
+        with velocity_column:
+            velocity_figure = build_progressive_chart(
+                complete_time=simulation["time"],
+                complete_values=simulation["velocity"],
+                observation_time=state["time"],
+                observation_value=state["velocity"],
+                release_time=release_time,
+                title="Velocidad vs. tiempo",
+                y_title="Velocidad, v (m/s)",
+                line_name="v(t)",
+                line_color=INTERACTIVE_BLUE,
+            )
+        
+            st.plotly_chart(
+                velocity_figure,
+                use_container_width=True,
+                config={
+                    "displaylogo": False,
+                    "responsive": True,
+                },
+            )
+        
+        with position_column:
+            position_figure = build_progressive_chart(
+                complete_time=simulation["time"],
+                complete_values=simulation["position"],
+                observation_time=state["time"],
+                observation_value=state["position"],
+                release_time=release_time,
+                title="Posición vs. tiempo",
+                y_title="Posición, x (m)",
+                line_name="x(t)",
+                line_color=POSITION_GREEN,
+            )
+        
+            st.plotly_chart(
+                position_figure,
+                use_container_width=True,
+                config={
+                    "displaylogo": False,
+                    "responsive": True,
+                },
+            )
+        
+        
+        
+        
+        
+        acceleration_column, gauge_column = st.columns(
+            [1.35, 1],
+            gap="medium",
+        )
+        
+        with acceleration_column:
+            acceleration_figure = build_progressive_chart(
+                complete_time=simulation["time"],
+                complete_values=simulation["acceleration"],
+                observation_time=state["time"],
+                observation_value=state["acceleration"],
+                release_time=release_time,
+                title="Aceleración vs. tiempo",
+                y_title="Aceleración, a (m/s²)",
+                line_name="a(t)",
+                line_color=ACCELERATION_RED,
+            )
+        
+            st.plotly_chart(
+                acceleration_figure,
+                use_container_width=True,
+                config={
+                    "displaylogo": False,
+                    "responsive": True,
+                },
+            )
+        
+        with gauge_column:
+            with st.container(border=True):
+                maximum_speed = float(
+                    np.max(np.abs(simulation["velocity"]))
+                )
+        
+                st.plotly_chart(
+                    build_speedometer(
+                        velocity=state["velocity"],
+                        maximum_speed=maximum_speed,
+                    ),
+                    use_container_width=True,
+                    config={
+                        "displayModeBar": False,
+                    },
+                )
+        
+                if state["velocity"] > 0.01:
+                    movement_state = "Movimiento hacia adelante"
+                elif state["velocity"] < -0.01:
+                    movement_state = "Movimiento hacia atrás"
+                else:
+                    movement_state = "Carrito detenido"
+        
+                if state["band_active"]:
+                    band_state = "Liga actuando"
+                else:
+                    band_state = "Liga suelta"
+        
+                st.markdown(
+                    f"""
+                    <div style="
+                        text-align: center;
+                        color: #102A43;
+                        line-height: 1.7;
+                    ">
+                        <strong>{movement_state}</strong><br>
+                        <span style="color: #627D98;">
+                            {band_state}
+                        </span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+        ## ******************************************************
+        ## BALANCE ENERGETICO
+        ##****************************************************
+        st.markdown("## 4. Balance energético")
+        
+        with st.container(border=True):
+        
+            # ---------------------------------------------------------
+            # Energía mecánica inicial y energía mecánica actual
+            # ---------------------------------------------------------
+        
+            initial_mechanical_energy = float(
+                simulation["mechanical_energy"][0]
+            )
+        
+            current_mechanical_energy = float(
+                state["mechanical_energy"]
+            )
+        
+            energy_info_columns = st.columns(2, gap="medium")
+        
+            with energy_info_columns[0]:
+                st.metric(
+                    label="Energía mecánica inicial del sistema",
+                    value=f"{initial_mechanical_energy:.3f} J",
+                    border=True,
+                )
+        
+            with energy_info_columns[1]:
+                st.metric(
+                    label=(
+                        "Energía mecánica en "
+                        f"t = {state['time']:.2f} s"
+                    ),
+                    value=f"{current_mechanical_energy:.3f} J",
+                    border=True,
+                )
+        
+            # ---------------------------------------------------------
+            ## Gráfico energia 
+            # ---------------------------------------------------------
+        
+            energy_figure = build_energy_chart(
+                kinetic_energy=state["kinetic_energy"],
+                elastic_energy=state["elastic_energy"],
+                friction_work=state["friction_work"],
+                mechanical_energy=state["mechanical_energy"],
+                observation_time=state["time"],
+            )
+        
+            st.plotly_chart(
+                energy_figure,
+                use_container_width=True,
+                config={
+                    "displaylogo": False,
+                    "responsive": True,
+                },
+            )
+        
+        #************************************************************
+        
+        with st.expander("Modelo físico utilizado"):
+            st.markdown(
+                """
+                Mientras la liga se encuentra estirada:
+        
+                \[
+                F_e = k(L-L_0)
+                \]
+        
+                La fuerza de fricción cinética es:
+        
+                \[
+                F_f = -\\mu m g
+                \]
+        
+                La aceleración instantánea se calcula mediante:
+        
+                \[
+                a(t)=\\frac{F_e+F_f}{m}
+                \]
+        
+                Cuando la longitud de la liga alcanza su longitud natural,
+                la fuerza elástica se vuelve cero. Desde ese instante, la
+                aceleración queda determinada únicamente por la fricción y
+                la velocidad disminuye linealmente hasta que el carrito se
+                detiene.
+                """
+            )
 
-    # ---------------------------------------------------------
-    ## Gráfico energia 
-    # ---------------------------------------------------------
 
-    energy_figure = build_energy_chart(
-        kinetic_energy=state["kinetic_energy"],
-        elastic_energy=state["elastic_energy"],
-        friction_work=state["friction_work"],
-        mechanical_energy=state["mechanical_energy"],
-        observation_time=state["time"],
-    )
-
-    st.plotly_chart(
-        energy_figure,
-        use_container_width=True,
-        config={
-            "displaylogo": False,
-            "responsive": True,
-        },
-    )
-
-#************************************************************
-
-with st.expander("Modelo físico utilizado"):
-    st.markdown(
-        """
-        Mientras la liga se encuentra estirada:
-
-        \[
-        F_e = k(L-L_0)
-        \]
-
-        La fuerza de fricción cinética es:
-
-        \[
-        F_f = -\\mu m g
-        \]
-
-        La aceleración instantánea se calcula mediante:
-
-        \[
-        a(t)=\\frac{F_e+F_f}{m}
-        \]
-
-        Cuando la longitud de la liga alcanza su longitud natural,
-        la fuerza elástica se vuelve cero. Desde ese instante, la
-        aceleración queda determinada únicamente por la fricción y
-        la velocidad disminuye linealmente hasta que el carrito se
-        detiene.
-        """
-    )
-
-
-render_footer()
+    if show_footer:
+        render_footer()
+if __name__ == "__main__":
+    render_prediction()
