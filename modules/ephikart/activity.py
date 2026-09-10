@@ -33,13 +33,12 @@ render_top_navigation()
 render_header(
     eyebrow="e(Phi)Kart",
     title="Experiencia experimental guiada",
-    description=(
+    subtitle=(
         "Predice, observa, analiza y compara el movimiento "
         "de un carrito impulsado por una liga elástica."
     ),
     badge="Actividad interactiva",
 )
-
 
 # ============================================================
 # Indicador de progreso
