@@ -1,6 +1,7 @@
 import streamlit as st
 
 from modules.ephikart.prediction import render_prediction
+from modules.ephikart.experiment import render_experiment
 from components.header import render_header
 from components.footer import render_footer
 from components.top_navigation import render_top_navigation
@@ -95,11 +96,9 @@ if st.session_state.ephikart_step >= 2:
         "del carrito."
     )
 
-    st.page_link(
-        "modules/ephikart/experiment.py",
-        label="Abrir guía del experimento",
-        icon="🧪",
-        use_container_width=True,
+    render_experiment(
+    show_header=False,
+    show_footer=False,
     )
 
     if st.button(
