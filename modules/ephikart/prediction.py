@@ -26,7 +26,7 @@ TEXT_COLOR = "#102A43"
 MUTED_TEXT = "#627D98"
 GRID_COLOR = "rgba(98, 125, 152, 0.18)"
 
-
+render_top_navigation()
 render_header(
     eyebrow="e(Phi)Kart",
     title="Predicción del movimiento",
