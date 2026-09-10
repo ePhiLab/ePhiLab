@@ -3,6 +3,8 @@ import streamlit as st
 from modules.ephikart.prediction import render_prediction
 from modules.ephikart.experiment import render_experiment
 from modules.ephikart.fizziq import render_fizziq
+from modules.ephikart.comparison import render_comparison
+from modules.ephikart.results import render_results
 from components.header import render_header
 from components.footer import render_footer
 from components.top_navigation import render_top_navigation
