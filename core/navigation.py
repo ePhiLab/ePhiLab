@@ -27,6 +27,12 @@ def run_navigation() -> None:
                 url_path="ephikart",
             ),
             st.Page(
+                ROOT_DIR / "modules" / "ephikart" / "activity.py",
+                title="Actividad ePhiKart",
+                icon="🧭",
+                url_path="ephikart-actividad",
+            ),
+            st.Page(
                 ROOT_DIR / "modules" / "ephikart" / "prediction.py",
                 title="Predicción",
                 icon="📐",
