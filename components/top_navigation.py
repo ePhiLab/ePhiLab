@@ -23,3 +23,8 @@ def render_top_navigation() -> None:
             icon="🏎️",
             use_container_width=True,
         )
+
+    st.markdown(
+        '<div style="height: 0.55rem;"></div>',
+        unsafe_allow_html=True,
+    )
