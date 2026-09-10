@@ -865,7 +865,7 @@ def render_prediction(
     
     with st.expander("Modelo físico utilizado"):
         st.markdown(
-            """
+            r"""
             Mientras la liga se encuentra estirada:
     
             \[
@@ -893,7 +893,10 @@ def render_prediction(
         )
 
 
-if show_footer:
-    render_footer()
+
+    if show_footer:
+        render_footer()
+
+
 if __name__ == "__main__":
     render_prediction(show_top_navigation=True)
