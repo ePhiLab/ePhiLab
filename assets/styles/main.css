@@ -393,3 +393,85 @@ html, body, [class*="css"] {
 [data-testid="stMain"] .module-hero span {
     color: #FFFFFF !important;
 }
+
+/* =========================================================
+   P0-A.2 · Navegación superior ePhiKart
+   ========================================================= */
+
+.ephikart-top-nav-marker {
+    height: 0;
+}
+
+/* Botones PageLink utilizados como navegación superior */
+[data-testid="stPageLink"] a,
+[data-testid="stPageLink-NavLink"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 44px !important;
+    width: 100% !important;
+
+    padding: 0.60rem 0.85rem !important;
+
+    background: #FFFFFF !important;
+    color: #001C43 !important;
+
+    border: 1px solid #D9E2EC !important;
+    border-radius: 12px !important;
+
+    text-decoration: none !important;
+
+    box-shadow: 0 3px 10px rgba(0, 28, 67, 0.06);
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+
+/* Texto e iconos internos */
+[data-testid="stPageLink"] a *,
+[data-testid="stPageLink-NavLink"] * {
+    color: #001C43 !important;
+    opacity: 1 !important;
+}
+
+
+/* Hover */
+[data-testid="stPageLink"] a:hover,
+[data-testid="stPageLink-NavLink"]:hover {
+    background: #EAF6FC !important;
+    border-color: #1677B8 !important;
+}
+
+
+/* Feedback táctil */
+[data-testid="stPageLink"] a:active,
+[data-testid="stPageLink-NavLink"]:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================================
+   Smartphone
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+    /* Un poco menos de margen superior */
+    .block-container {
+        padding-top: 1rem;
+    }
+
+    /* Botones cómodos para tocar */
+    [data-testid="stPageLink"] a,
+    [data-testid="stPageLink-NavLink"] {
+        min-height: 46px !important;
+        padding: 0.55rem 0.50rem !important;
+        font-size: 0.82rem !important;
+        white-space: nowrap !important;
+    }
+
+}
