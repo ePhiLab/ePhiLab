@@ -27,9 +27,83 @@ MUTED_TEXT = "#627D98"
 GRID_COLOR = "rgba(98, 125, 152, 0.18)"
 
 
+# ============================================================
+# P1-A / P1-B · GLOBAL TIME STATE / ESTADO TEMPORAL GLOBAL
+# Spanish: t_obs es la única fuente de verdad temporal.
+#          Los sliders t_general, t_x, t_v y t_a son controles
+#          espejo que siempre representan el mismo instante.
+# English: t_obs is the single temporal source of truth.
+#          Sliders t_general, t_x, t_v, and t_a are mirror
+#          controls that always represent the same instant.
+# ============================================================
+
+TIME_SLIDER_KEYS = (
+    "t_general",
+    "t_x",
+    "t_v",
+    "t_a",
+)
+
+
+def clamp_observation_time(
+    value: float,
+    duration: float,
+) -> float:
+    """
+    Spanish: Limita el tiempo de observación al intervalo válido.
+    English: Clamps observation time to the valid interval.
+    """
+
+    return max(0.0, min(float(value), float(duration)))
+
+
+def prepare_observation_time_state(duration: float) -> None:
+    """
+    Spanish: Prepara t_obs y sincroniza los sliders espejo antes
+             de dibujar los widgets.
+    English: Prepares t_obs and synchronizes mirror sliders before
+             rendering the widgets.
+    """
+
+    current_time = clamp_observation_time(
+        st.session_state.get("t_obs", 0.0),
+        duration,
+    )
+
+    st.session_state["t_obs"] = current_time
+
+    for slider_key in TIME_SLIDER_KEYS:
+        st.session_state[slider_key] = current_time
+
+
+def sync_observation_time(
+    source_key: str,
+    duration: float,
+) -> None:
+    """
+    Spanish: Copia el valor del slider modificado hacia t_obs y
+             hacia todos los demás sliders espejo.
+    English: Copies the changed slider value into t_obs and all
+             remaining mirror sliders.
+    """
+
+    new_time = clamp_observation_time(
+        st.session_state.get(source_key, 0.0),
+        duration,
+    )
+
+    st.session_state["t_obs"] = new_time
+
+    for slider_key in TIME_SLIDER_KEYS:
+        st.session_state[slider_key] = new_time
+
+
 
 def reset_prediction() -> None:
-    """Restablece los valores iniciales de la página."""
+    """
+    Spanish: Restablece parámetros y controles temporales.
+    English: Resets parameters and temporal controls.
+    """
 
     keys_to_remove = [
         "kart_initial_position",
@@ -40,7 +114,18 @@ def reset_prediction() -> None:
         "kart_mass",
         "kart_friction",
         "kart_duration",
+
+        # P1-A / P1-B · GLOBAL TIME / TIEMPO GLOBAL
+        # Spanish: Se elimina también la clave antigua para evitar
+        #          conservar estados de versiones previas.
+        # English: The legacy key is also removed to avoid keeping
+        #          state from earlier versions.
         "kart_observation_time",
+        "t_obs",
+        "t_general",
+        "t_x",
+        "t_v",
+        "t_a",
     ]
 
     for key in keys_to_remove:
@@ -591,31 +676,35 @@ def render_prediction(
         st.error(str(error))
         st.stop()
     
-    ##************************************
-    ##2. Instante de observación
-    ##************************************
+    # ========================================================
+    # P1-A / P1-B · 2. OBSERVATION TIME / TIEMPO DE OBSERVACIÓN
+    # Spanish: El slider general modifica t_obs. Las gráficas,
+    #          métricas, energía y velocímetro leen este mismo valor.
+    # English: The general slider updates t_obs. Charts, metrics,
+    #          energy, and the speedometer read this same value.
+    # ========================================================
+
     st.markdown("## 2. Instante de observación")
-    
+
+    prepare_observation_time_state(float(duration))
+
     with st.container(border=True):
-        observation_time = st.slider(
+        st.slider(
             "Desplaza el control para construir la gráfica",
             min_value=0.0,
             max_value=float(duration),
-            value=min(
-                st.session_state.get(
-                    "kart_observation_time",
-                    0.0,
-                ),
-                float(duration),
-            ),
             step=0.02,
-            key="kart_observation_time",
+            key="t_general",
+            on_change=sync_observation_time,
+            args=("t_general", float(duration)),
             help=(
-                "Este slider controla simultáneamente la curva visible, "
-                "las métricas y el velocímetro."
+                "Control temporal general. Todos los controles de tiempo "
+                "de la actividad representan el mismo instante t_obs."
             ),
         )
-    
+
+        observation_time = float(st.session_state["t_obs"])
+
         st.markdown(
             f"""
             <div style="
@@ -623,7 +712,7 @@ def render_prediction(
                 font-size: 1rem;
                 margin-top: -0.25rem;
             ">
-                Tiempo actual:
+                Tiempo global de observación:
                 <strong style="
                     color: #1677B8;
                     font-size: 1.35rem;
@@ -634,8 +723,7 @@ def render_prediction(
             """,
             unsafe_allow_html=True,
         )
-    
-    
+
     state = instantaneous_state(
         simulation,
         observation_time,
@@ -684,6 +772,19 @@ def render_prediction(
     velocity_column, position_column = st.columns(2, gap="medium")
     
     with velocity_column:
+        # P1-B · MIRROR SLIDER v(t) / SLIDER ESPEJO v(t)
+        # Spanish: Mover este control actualiza el mismo t_obs global.
+        # English: Moving this control updates the same global t_obs.
+        st.slider(
+            "Tiempo de observación para v(t), t (s)",
+            min_value=0.0,
+            max_value=float(duration),
+            step=0.02,
+            key="t_v",
+            on_change=sync_observation_time,
+            args=("t_v", float(duration)),
+        )
+
         velocity_figure = build_progressive_chart(
             complete_time=simulation["time"],
             complete_values=simulation["velocity"],
@@ -706,6 +807,19 @@ def render_prediction(
         )
     
     with position_column:
+        # P1-B · MIRROR SLIDER x(t) / SLIDER ESPEJO x(t)
+        # Spanish: Mover este control actualiza el mismo t_obs global.
+        # English: Moving this control updates the same global t_obs.
+        st.slider(
+            "Tiempo de observación para x(t), t (s)",
+            min_value=0.0,
+            max_value=float(duration),
+            step=0.02,
+            key="t_x",
+            on_change=sync_observation_time,
+            args=("t_x", float(duration)),
+        )
+
         position_figure = build_progressive_chart(
             complete_time=simulation["time"],
             complete_values=simulation["position"],
@@ -737,6 +851,19 @@ def render_prediction(
     )
     
     with acceleration_column:
+        # P1-B · MIRROR SLIDER a(t) / SLIDER ESPEJO a(t)
+        # Spanish: Mover este control actualiza el mismo t_obs global.
+        # English: Moving this control updates the same global t_obs.
+        st.slider(
+            "Tiempo de observación para a(t), t (s)",
+            min_value=0.0,
+            max_value=float(duration),
+            step=0.02,
+            key="t_a",
+            on_change=sync_observation_time,
+            args=("t_a", float(duration)),
+        )
+
         acceleration_figure = build_progressive_chart(
             complete_time=simulation["time"],
             complete_values=simulation["acceleration"],
