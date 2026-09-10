@@ -6,6 +6,7 @@ import streamlit as st
 
 from components.footer import render_footer
 from components.header import render_header
+from components.top_navigation import render_top_navigation
 from physics.ephikart.simulation import (
     ElasticKartParameters,
     instantaneous_state,
