@@ -453,25 +453,32 @@ html, body, [class*="css"] {
     transform: scale(0.98);
 }
 
-
 /* =========================================================
    Smartphone
    ========================================================= */
 
 @media (max-width: 767px) {
 
-    /* Un poco menos de margen superior */
+    /* Más aire respecto a la barra superior de Streamlit */
     .block-container {
-        padding-top: 1rem;
+        padding-top: 2.2rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
 
     /* Botones cómodos para tocar */
     [data-testid="stPageLink"] a,
     [data-testid="stPageLink-NavLink"] {
         min-height: 46px !important;
-        padding: 0.55rem 0.50rem !important;
-        font-size: 0.82rem !important;
+
+        padding: 0.60rem 0.75rem !important;
+
+        font-size: 0.86rem !important;
+        line-height: 1.2 !important;
+
         white-space: nowrap !important;
+
+        margin-bottom: 0.35rem !important;
     }
 
 }
