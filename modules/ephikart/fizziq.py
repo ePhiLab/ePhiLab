@@ -3,15 +3,43 @@ from components.footer import render_footer
 from components.header import render_header
 from components.top_navigation import render_top_navigation
 
-render_top_navigation()
-render_header(
-    eyebrow="e(Phi)Kart",
-    title="Análisis FizziQ",
-    subtitle="Importación y procesamiento robusto de archivos CSV exportados desde FizziQ.",
-    badge="Módulo preparado",
-)
-render_placeholder_card(
-    "Importador CSV",
-    "Se incorporará detección de separador, limpieza de columnas, selección de ejes y ajustes matemáticos.",
-)
-render_footer()
+
+def render_fizziq(
+    show_header: bool = True,
+    show_footer: bool = True,
+    show_top_navigation: bool = False,
+) -> None:
+    """Renderiza la sección de análisis FizziQ de ePhiKart."""
+
+    if show_top_navigation:
+        render_top_navigation()
+
+    if show_header:
+        render_header(
+            eyebrow="e(Phi)Kart",
+            title="Análisis FizziQ",
+            subtitle=(
+                "Importación y procesamiento robusto de archivos CSV "
+                "exportados desde FizziQ."
+            ),
+            badge="Módulo preparado",
+        )
+
+    render_placeholder_card(
+        "Importador CSV",
+        (
+            "Se incorporará detección de separador, limpieza de columnas, "
+            "selección de ejes y ajustes matemáticos."
+        ),
+    )
+
+    if show_footer:
+        render_footer()
+
+
+if __name__ == "__main__":
+    render_fizziq(
+        show_header=True,
+        show_footer=True,
+        show_top_navigation=True,
+    )
