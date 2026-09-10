@@ -1,17 +1,31 @@
 import streamlit as st
 
-from modules.ephikart.prediction import render_prediction
+from components.footer import render_footer
+from components.header import render_header
+from components.top_navigation import render_top_navigation
+from modules.ephikart.comparison import render_comparison
 from modules.ephikart.experiment import render_experiment
 from modules.ephikart.fizziq import render_fizziq
-from modules.ephikart.comparison import render_comparison
+from modules.ephikart.prediction import render_prediction
 from modules.ephikart.results import render_results
-from components.header import render_header
-from components.footer import render_footer
-from components.top_navigation import render_top_navigation
 
 
 # ============================================================
-# Estado inicial del flujo
+# P0-D · INTEGRATED ACTIVITY / ACTIVIDAD INTEGRADA
+# Spanish: Esta página es la experiencia principal de ePhiKart.
+#          Cada etapa se desbloquea hacia abajo y las etapas previas
+#          permanecen visibles.
+# English: This page is the main ePhiKart experience.
+#          Each stage unlocks downward while previous stages remain visible.
+# ============================================================
+
+TOTAL_STEPS = 5
+
+
+# ============================================================
+# FLOW STATE / ESTADO DEL FLUJO
+# Spanish: ephikart_step guarda la etapa máxima desbloqueada.
+# English: ephikart_step stores the highest unlocked stage.
 # ============================================================
 
 if "ephikart_step" not in st.session_state:
@@ -19,50 +33,60 @@ if "ephikart_step" not in st.session_state:
 
 
 def unlock_step(step: int) -> None:
-    """Desbloquea una nueva etapa sin cerrar las anteriores."""
+    """
+    Spanish: Desbloquea una nueva etapa sin cerrar las anteriores.
+    English: Unlocks a new stage without closing previous stages.
+    """
+
     if step > st.session_state.ephikart_step:
-        st.session_state.ephikart_step = step
+        st.session_state.ephikart_step = min(step, TOTAL_STEPS)
 
 
 # ============================================================
-# Navegación superior
+# TOP NAVIGATION / NAVEGACIÓN SUPERIOR
+# Spanish: Se mantiene únicamente la navegación general.
+# English: Only the general top navigation is kept.
 # ============================================================
 
 render_top_navigation()
 
 
 # ============================================================
-# Cabecera principal
+# MAIN HEADER / CABECERA PRINCIPAL
+# Spanish: La actividad usa una sola cabecera global.
+# English: The activity uses one global header.
 # ============================================================
 
 render_header(
     eyebrow="e(Phi)Kart",
     title="Experiencia experimental guiada",
     subtitle=(
-        "Predice, observa, analiza y compara el movimiento "
+        "Predice, experimenta, analiza y compara el movimiento "
         "de un carrito impulsado por una liga elástica."
     ),
     badge="Actividad interactiva",
 )
 
+
 # ============================================================
-# Indicador de progreso
+# PROGRESS INDICATOR / INDICADOR DE PROGRESO
+# Spanish: El progreso refleja la última etapa desbloqueada.
+# English: Progress reflects the highest unlocked stage.
 # ============================================================
 
-TOTAL_STEPS = 5
-current_step = st.session_state.ephikart_step
-
+current_step = int(st.session_state.ephikart_step)
 progress_value = current_step / TOTAL_STEPS
 
 st.progress(progress_value)
-
 st.caption(
     f"Progreso de la actividad: {current_step} de {TOTAL_STEPS} etapas"
 )
 
 
 # ============================================================
-# 1. PREDICCIÓN
+# 1. PREDICTION / PREDICCIÓN
+# Spanish: La predicción se muestra directamente en el flujo principal.
+# English: Prediction is rendered directly inside the main flow.
 # ============================================================
 
 st.markdown("---")
@@ -72,6 +96,7 @@ st.write(
     "Configura el sistema y analiza cómo esperas que se comporte "
     "el carrito antes de realizar el experimento."
 )
+
 render_prediction(
     show_header=False,
     show_footer=False,
@@ -86,11 +111,12 @@ if st.button(
 
 
 # ============================================================
-# 2. EXPERIMENTO
+# 2. EXPERIMENT / EXPERIMENTO
+# Spanish: Se incorpora sin navegar a otra página.
+# English: This section is embedded without navigating away.
 # ============================================================
 
 if st.session_state.ephikart_step >= 2:
-
     st.markdown("---")
     st.subheader("2. Experimento")
 
@@ -100,8 +126,8 @@ if st.session_state.ephikart_step >= 2:
     )
 
     render_experiment(
-    show_header=False,
-    show_footer=False,
+        show_header=False,
+        show_footer=False,
     )
 
     if st.button(
@@ -113,22 +139,24 @@ if st.session_state.ephikart_step >= 2:
 
 
 # ============================================================
-# 3. ANÁLISIS FIZZIQ
+# 3. FIZZIQ ANALYSIS / ANÁLISIS FIZZIQ
+# Spanish: El análisis de datos se mantiene dentro de la misma página.
+# English: Data analysis remains inside the same page.
 # ============================================================
 
 if st.session_state.ephikart_step >= 3:
-
     st.markdown("---")
     st.subheader("3. Análisis FizziQ")
 
     st.write(
         "Importa y analiza los datos obtenidos con FizziQ."
     )
+
     render_fizziq(
-    show_header=False,
-    show_footer=False,
+        show_header=False,
+        show_footer=False,
     )
-    
+
     if st.button(
         "Continuar a comparación",
         key="continue_comparison",
@@ -138,11 +166,12 @@ if st.session_state.ephikart_step >= 3:
 
 
 # ============================================================
-# 4. COMPARACIÓN
+# 4. COMPARISON / COMPARACIÓN
+# Spanish: La comparación aparece debajo de las etapas anteriores.
+# English: Comparison appears below all previously unlocked stages.
 # ============================================================
 
 if st.session_state.ephikart_step >= 4:
-
     st.markdown("---")
     st.subheader("4. Comparación")
 
@@ -164,11 +193,12 @@ if st.session_state.ephikart_step >= 4:
 
 
 # ============================================================
-# 5. RESULTADOS
+# 5. RESULTS / RESULTADOS
+# Spanish: La síntesis final cierra la experiencia integrada.
+# English: The final synthesis closes the integrated experience.
 # ============================================================
 
 if st.session_state.ephikart_step >= 5:
-
     st.markdown("---")
     st.subheader("5. Resultados")
 
@@ -176,16 +206,23 @@ if st.session_state.ephikart_step >= 5:
         "Revisa los resultados finales y prepara la evidencia "
         "de la actividad."
     )
+
     render_results(
         show_header=False,
         show_footer=False,
     )
 
-    st.success("Has desbloqueado todas las etapas de ePhiKart.")
+    st.success(
+        "Has desbloqueado todas las etapas de ePhiKart."
+    )
 
 
 # ============================================================
-# Pie de página
+# GLOBAL FOOTER / PIE DE PÁGINA GLOBAL
+# Spanish: Los módulos embebidos no muestran su propio footer.
+#          Este es el único pie de página de la actividad.
+# English: Embedded modules do not render their own footer.
+#          This is the activity's only footer.
 # ============================================================
 
 render_footer()
