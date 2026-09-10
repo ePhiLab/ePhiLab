@@ -11,7 +11,12 @@ render_header(
     subtitle="Predicción, experimentación y análisis del movimiento de un carrito impulsado por energía elástica.",
     badge="Entorno de aprendizaje interactivo",
 )
-
+st.page_link(
+    "modules/ephikart/activity.py",
+    label="Iniciar actividad ePhiKart",
+    icon="🚀",
+    use_container_width=True,
+)
 st.markdown(
     """
     <section class="intro-panel">
