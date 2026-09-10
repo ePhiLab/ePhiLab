@@ -2,15 +2,12 @@ from pathlib import Path
 
 import streamlit as st
 
-from components.sidebar_brand import render_sidebar_brand
-
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
 
 
 def run_navigation() -> None:
     """Construye y ejecuta la navegación maestra de e(Phi)Lab."""
-    render_sidebar_brand()
+    
 
     pages = {
         "Principal": [
@@ -70,5 +67,8 @@ def run_navigation() -> None:
         ],
     }
 
-    navigation = st.navigation(pages, position="sidebar", expanded=True)
+    navigation = st.navigation(
+    pages,
+    position="hidden",
+    )
     navigation.run()
