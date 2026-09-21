@@ -761,23 +761,29 @@ def render_prediction(
         f"{state['friction_force']:.3f} N",
         border=True,
     )
+      # ========================================================
+    # P1-C.2 · MOBILE-FIRST CHARTS / GRÁFICAS MOBILE-FIRST
+    # Spanish: Las gráficas se presentan verticalmente para
+    #          facilitar su lectura en teléfonos y tabletas.
+    # English: Charts are displayed vertically to improve
+    #          readability on phones and tablets.
+    # ========================================================
+
+    # --------------------------------------------------------
+    # POSITION x(t) / POSICIÓN x(t)
+    # --------------------------------------------------------
+     
+   
     
-    
-    velocity_column, position_column = st.columns(2, gap="medium")
-    
-    with velocity_column:
-        # P1-B · MIRROR SLIDER v(t) / SLIDER ESPEJO v(t)
-        # Spanish: Mover este control actualiza el mismo t_obs global.
-        # English: Moving this control updates the same global t_obs.
-        st.slider(
-            "Tiempo de observación para v(t), t (s)",
-            min_value=0.0,
-            max_value=float(duration),
-            step=0.02,
-            key="t_v",
-            on_change=sync_observation_time,
-            args=("t_v", float(duration)),
-        )
+    st.slider(
+        "Tiempo de observación para v(t), t (s)",
+        min_value=0.0,
+        max_value=float(duration),
+        step=0.02,
+        key="t_v",
+        on_change=sync_observation_time,
+        args=("t_v", float(duration)),
+    )
 
         velocity_figure = build_progressive_chart(
             complete_time=simulation["time"],
