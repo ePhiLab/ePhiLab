@@ -841,84 +841,111 @@ def render_prediction(
             "responsive": True,
         },
     )
+        # ========================================================
+    # P1-C.2 · ACCELERATION CHART / GRÁFICA DE ACELERACIÓN
+    # Spanish: La gráfica a(t) ocupa ahora todo el ancho disponible,
+    #          manteniendo el mismo orden y estructura que x(t) y v(t).
+    # English: The a(t) chart now uses the full available width,
+    #          following the same order and structure as x(t) and v(t).
+    # ========================================================
 
-    
-    acceleration_column, gauge_column = st.columns(
-        [1.35, 1],
-        gap="medium",
+    # --------------------------------------------------------
+    # ACCELERATION a(t) / ACELERACIÓN a(t)
+    # --------------------------------------------------------
+
+    st.slider(
+        "Tiempo de observación para a(t), t (s)",
+        min_value=0.0,
+        max_value=float(duration),
+        step=0.02,
+        key="t_a",
+        on_change=sync_observation_time,
+        args=("t_a", float(duration)),
     )
 
-    with acceleration_column:
-        st.slider(
-            "Tiempo de observación para a(t), t (s)",
-            min_value=0.0,
-            max_value=float(duration),
-            step=0.02,
-            key="t_a",
-            on_change=sync_observation_time,
-            args=("t_a", float(duration)),
-        )
+    acceleration_figure = build_progressive_chart(
+        complete_time=simulation["time"],
+        complete_values=simulation["acceleration"],
+        observation_time=state["time"],
+        observation_value=state["acceleration"],
+        release_time=release_time,
+        title="Aceleración vs. tiempo",
+        y_title="Aceleración, a (m/s²)",
+        line_name="a(t)",
+        line_color=ACCELERATION_RED,
+    )
 
-        acceleration_figure = build_progressive_chart(
-            complete_time=simulation["time"],
-            complete_values=simulation["acceleration"],
-            observation_time=state["time"],
-            observation_value=state["acceleration"],
-            release_time=release_time,
-            title="Aceleración vs. tiempo",
-            y_title="Aceleración, a (m/s²)",
-            line_name="a(t)",
-            line_color=ACCELERATION_RED,
+    st.plotly_chart(
+        acceleration_figure,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "responsive": True,
+        },
+    )
+
+    # ========================================================
+    # P1-C.2 · SPEEDOMETER / VELOCÍMETRO
+    # Spanish: El velocímetro se coloca debajo de las tres gráficas.
+    #          Sigue utilizando el mismo estado instantáneo t_obs.
+    # English: The speedometer is placed below the three charts.
+    #          It continues using the same instantaneous t_obs state.
+    # ========================================================
+
+    with st.container(border=True):
+
+        maximum_speed = float(
+            np.max(np.abs(simulation["velocity"]))
         )
 
         st.plotly_chart(
-            acceleration_figure,
+            build_speedometer(
+                velocity=state["velocity"],
+                maximum_speed=maximum_speed,
+            ),
             use_container_width=True,
-            config={"displaylogo": False, "responsive": True},
+            config={
+                "displayModeBar": False,
+                "responsive": True,
+            },
         )
 
-    with gauge_column:
-        with st.container(border=True):
-            maximum_speed = float(
-                np.max(np.abs(simulation["velocity"]))
-            )
+        # ----------------------------------------------------
+        # MOVEMENT STATE / ESTADO DEL MOVIMIENTO
+        # ----------------------------------------------------
 
-            st.plotly_chart(
-                build_speedometer(
-                    velocity=state["velocity"],
-                    maximum_speed=maximum_speed,
-                ),
-                use_container_width=True,
-                config={"displayModeBar": False},
-            )
+        if state["velocity"] > 0.01:
+            movement_state = "Movimiento hacia adelante"
+        elif state["velocity"] < -0.01:
+            movement_state = "Movimiento hacia atrás"
+        else:
+            movement_state = "Carrito detenido"
 
-            if state["velocity"] > 0.01:
-                movement_state = "Movimiento hacia adelante"
-            elif state["velocity"] < -0.01:
-                movement_state = "Movimiento hacia atrás"
-            else:
-                movement_state = "Carrito detenido"
+        # ----------------------------------------------------
+        # ELASTIC BAND STATE / ESTADO DE LA LIGA
+        # ----------------------------------------------------
 
-            if state["band_active"]:
-                band_state = "Liga actuando"
-            else:
-                band_state = "Liga suelta"
+        if state["band_active"]:
+            band_state = "Liga actuando"
+        else:
+            band_state = "Liga suelta"
 
-            st.markdown(
-                f"""
-                <div style="
-                    text-align: center;
-                    color: #102A43;
-                    line-height: 1.7;
-                ">
-                    <strong>{movement_state}</strong><br>
-                    <span style="color: #627D98;">
-                        {band_state}
-                    </span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+        st.markdown(
+            f"""
+            <div style="
+                text-align: center;
+                color: #102A43;
+                line-height: 1.7;
+            ">
+                <strong>{movement_state}</strong><br>
+                <span style="color: #627D98;">
+                    {band_state}
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
 
     ## ******************************************************
     ## BALANCE ENERGETICO
