@@ -724,43 +724,94 @@ def render_prediction(
     )
     
     release_time = simulation["release_time"]
-    
-    ##***********************************
-    ## 3. Estado instantaneo
-    ##*****************************************
+
+        # ========================================================
+    # P1-D.1 · INSTANTANEOUS STATE / ESTADO INSTANTÁNEO
+    # Spanish: Las variables se organizan según su significado
+    #          físico: primero las variables cinemáticas y luego
+    #          las fuerzas que actúan sobre el carrito.
+    # English: Variables are organized according to their
+    #          physical meaning: kinematic variables first,
+    #          followed by the forces acting on the cart.
+    # ========================================================
+
     st.markdown("## 3. Estado instantáneo")
-    
-    metric_columns = st.columns(5, gap="medium")
-    
-    metric_columns[0].metric(
-        "Posición",
-        f"{state['position']:.3f} m",
+
+    # --------------------------------------------------------
+    # OBSERVATION TIME / TIEMPO DE OBSERVACIÓN
+    # Spanish: Todas las métricas corresponden al mismo t_obs.
+    # English: All metrics correspond to the same t_obs.
+    # --------------------------------------------------------
+
+    st.markdown(
+        f"""
+        <div style="
+            color: #627D98;
+            font-size: 0.95rem;
+            margin-top: -0.35rem;
+            margin-bottom: 0.85rem;
+        ">
+            Estado del sistema en
+            <strong style="
+                color: #1677B8;
+                font-size: 1.05rem;
+            ">
+                t = {state['time']:.2f} s
+            </strong>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # --------------------------------------------------------
+    # KINEMATICS / CINEMÁTICA
+    # --------------------------------------------------------
+
+    st.markdown("#### Movimiento")
+
+    motion_columns = st.columns(3, gap="medium")
+
+    motion_columns[0].metric(
+        label="Posición x",
+        value=f"{state['position']:.3f} m",
         border=True,
     )
-    
-    metric_columns[1].metric(
-        "Velocidad",
-        f"{state['velocity']:.3f} m/s",
+
+    motion_columns[1].metric(
+        label="Velocidad v",
+        value=f"{state['velocity']:.3f} m/s",
         border=True,
     )
-    
-    metric_columns[2].metric(
-        "Aceleración",
-        f"{state['acceleration']:.3f} m/s²",
+
+    motion_columns[2].metric(
+        label="Aceleración a",
+        value=f"{state['acceleration']:.3f} m/s²",
         border=True,
     )
-    
-    metric_columns[3].metric(
-        "Fuerza elástica",
-        f"{state['elastic_force']:.3f} N",
+
+    # --------------------------------------------------------
+    # DYNAMICS / DINÁMICA
+    # --------------------------------------------------------
+
+    st.markdown("#### Fuerzas")
+
+    force_columns = st.columns(2, gap="medium")
+
+    force_columns[0].metric(
+        label="Fuerza elástica",
+        value=f"{state['elastic_force']:.3f} N",
         border=True,
     )
-    
-    metric_columns[4].metric(
-        "Fuerza de fricción",
-        f"{state['friction_force']:.3f} N",
+
+    force_columns[1].metric(
+        label="Fuerza de fricción",
+        value=f"{state['friction_force']:.3f} N",
         border=True,
     )
+
+    
+    
+
     # ========================================================
     # P1-C.2 · MOBILE-FIRST CHART LAYOUT
     #          DISTRIBUCIÓN DE GRÁFICAS MOBILE-FIRST
