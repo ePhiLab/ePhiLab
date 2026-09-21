@@ -175,24 +175,18 @@ def build_progressive_chart(
     )
 
     figure = go.Figure()
+    # ========================================================
+    # P1-C.1 · HIDE FUTURE TRAJECTORY / OCULTAR TRAYECTORIA FUTURA
+    # Spanish: No se dibuja la parte de la trayectoria posterior
+    #          a t_obs. El estudiante construye la gráfica conforme
+    #          avanza el tiempo de observación.
+    # English: The trajectory after t_obs is not displayed.
+    #          The student builds the graph progressively as the
+    #          observation time advances.
+    # ========================================================
 
-    # Curva futura en gris tenue.
-    figure.add_trace(
-        go.Scatter(
-            x=complete_time,
-            y=complete_values,
-            mode="lines",
-            name="Trayectoria completa",
-            line={
-                "color": "rgba(98, 125, 152, 0.18)",
-                "width": 2,
-                "dash": "dot",
-            },
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
 
+    
     # Parte ya recorrida de la curva.
     figure.add_trace(
         go.Scatter(
