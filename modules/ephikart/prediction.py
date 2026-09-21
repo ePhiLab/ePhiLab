@@ -416,6 +416,297 @@ def build_speedometer(
     )
 
     return figure
+
+def build_kart_visual() -> go.Figure:
+    """
+    Spanish: Construye una representación lateral simplificada del
+             ePhiKart basada en la geometría del prototipo real.
+             P1-E.1 utiliza una representación estática para validar
+             primero la apariencia y la disposición del mecanismo.
+
+    English: Builds a simplified side-view representation of the
+             ePhiKart based on the geometry of the real prototype.
+             P1-E.1 uses a static representation to validate the
+             appearance and mechanism layout first.
+    """
+
+    figure = go.Figure()
+
+    # ========================================================
+    # P1-E.1 · TRACK / PISTA
+    # Spanish: La línea horizontal representa la superficie
+    #          sobre la cual se desplaza el carrito.
+    # English: The horizontal line represents the surface on
+    #          which the cart moves.
+    # ========================================================
+
+    figure.add_shape(
+        type="line",
+        x0=0.0,
+        x1=30.0,
+        y0=0.0,
+        y1=0.0,
+        line={
+            "color": "#627D98",
+            "width": 3,
+        },
+    )
+
+    # ========================================================
+    # P1-E.1 · CHASSIS / CHASIS
+    # Spanish: El prototipo tiene aproximadamente 26 cm de largo.
+    #          El chasis se representa en azul ESPOL para mantener
+    #          la identidad visual de e(Phi)Lab.
+    # English: The prototype is approximately 26 cm long.
+    #          The chassis is represented in ESPOL blue to preserve
+    #          the visual identity of e(Phi)Lab.
+    # ========================================================
+
+    figure.add_shape(
+        type="rect",
+        x0=2.0,
+        x1=28.0,
+        y0=4.0,
+        y1=8.0,
+        line={
+            "color": ESPOL_BLUE,
+            "width": 2,
+        },
+        fillcolor="rgba(0, 28, 67, 0.88)",
+    )
+
+    # ========================================================
+    # P1-E.1 · REAR WHEEL / RUEDA TRASERA
+    # Spanish: La rueda trasera motriz tiene 8.0 cm de diámetro.
+    # English: The driven rear wheel has an 8.0 cm diameter.
+    # ========================================================
+
+    figure.add_shape(
+        type="circle",
+        x0=3.0,
+        x1=11.0,
+        y0=0.0,
+        y1=8.0,
+        line={
+            "color": ESPOL_BLUE,
+            "width": 3,
+        },
+        fillcolor="#FFFFFF",
+    )
+
+    figure.add_shape(
+        type="circle",
+        x0=6.4,
+        x1=7.6,
+        y0=3.4,
+        y1=4.6,
+        line={
+            "color": INTERACTIVE_BLUE,
+            "width": 2,
+        },
+        fillcolor=INTERACTIVE_BLUE,
+    )
+
+    # ========================================================
+    # P1-E.1 · FRONT WHEEL / RUEDA DELANTERA
+    # Spanish: La rueda delantera tiene 5.5 cm de diámetro.
+    # English: The front wheel has a 5.5 cm diameter.
+    # ========================================================
+
+    figure.add_shape(
+        type="circle",
+        x0=21.25,
+        x1=26.75,
+        y0=0.0,
+        y1=5.5,
+        line={
+            "color": ESPOL_BLUE,
+            "width": 3,
+        },
+        fillcolor="#FFFFFF",
+    )
+
+    figure.add_shape(
+        type="circle",
+        x0=23.45,
+        x1=24.55,
+        y0=2.2,
+        y1=3.3,
+        line={
+            "color": INTERACTIVE_BLUE,
+            "width": 2,
+        },
+        fillcolor=INTERACTIVE_BLUE,
+    )
+
+    # ========================================================
+    # P1-E.1 · GEAR TRAIN / TREN DE ENGRANAJES
+    # Spanish: El círculo mayor representa el engranaje donde
+    #          actúan las ligas. El círculo menor representa el
+    #          engranaje conectado al eje de las ruedas traseras.
+    # English: The larger circle represents the gear acted on by
+    #          the elastic bands. The smaller circle represents
+    #          the gear connected to the rear-wheel axle.
+    # ========================================================
+
+    figure.add_shape(
+        type="circle",
+        x0=8.0,
+        x1=14.0,
+        y0=7.0,
+        y1=13.0,
+        line={
+            "color": TECH_CYAN,
+            "width": 3,
+        },
+        fillcolor="rgba(56, 169, 224, 0.20)",
+    )
+
+    figure.add_shape(
+        type="circle",
+        x0=6.2,
+        x1=9.2,
+        y0=7.5,
+        y1=10.5,
+        line={
+            "color": INTERACTIVE_BLUE,
+            "width": 3,
+        },
+        fillcolor="rgba(22, 119, 184, 0.22)",
+    )
+
+    # ========================================================
+    # P1-E.1 · ELASTIC BANDS / LIGAS ELÁSTICAS
+    # Spanish: Las dos líneas representan las dos ligas reales.
+    #          En esta primera versión solo validamos su ubicación.
+    # English: The two lines represent the two real elastic bands.
+    #          This first version only validates their location.
+    # ========================================================
+
+    figure.add_shape(
+        type="line",
+        x0=11.0,
+        x1=25.5,
+        y0=10.5,
+        y1=7.4,
+        line={
+            "color": "#F39C12",
+            "width": 4,
+        },
+    )
+
+    figure.add_shape(
+        type="line",
+        x0=11.0,
+        x1=25.5,
+        y0=9.5,
+        y1=6.8,
+        line={
+            "color": "#8E44AD",
+            "width": 4,
+        },
+    )
+
+    # ========================================================
+    # LABELS / ETIQUETAS
+    # ========================================================
+
+    figure.add_annotation(
+        x=11.0,
+        y=13.8,
+        text="Engranaje grande",
+        showarrow=False,
+        font={
+            "size": 12,
+            "color": TEXT_COLOR,
+        },
+    )
+
+    figure.add_annotation(
+        x=7.0,
+        y=11.2,
+        text="Engranaje pequeño",
+        showarrow=False,
+        font={
+            "size": 11,
+            "color": TEXT_COLOR,
+        },
+    )
+
+    figure.add_annotation(
+        x=7.0,
+        y=-1.2,
+        text="Rueda trasera · Ø 8.0 cm",
+        showarrow=False,
+        font={
+            "size": 11,
+            "color": MUTED_TEXT,
+        },
+    )
+
+    figure.add_annotation(
+        x=24.0,
+        y=-1.2,
+        text="Rueda delantera · Ø 5.5 cm",
+        showarrow=False,
+        font={
+            "size": 11,
+            "color": MUTED_TEXT,
+        },
+    )
+
+    figure.add_annotation(
+        x=25.5,
+        y=11.5,
+        text="Movimiento →",
+        showarrow=False,
+        font={
+            "size": 13,
+            "color": INTERACTIVE_BLUE,
+        },
+    )
+
+    figure.update_layout(
+        title={
+            "text": "Representación física del ePhiKart",
+            "x": 0.02,
+            "xanchor": "left",
+            "font": {
+                "size": 17,
+                "color": ESPOL_BLUE,
+            },
+        },
+        height=430,
+        margin={
+            "l": 15,
+            "r": 15,
+            "t": 60,
+            "b": 45,
+        },
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="#FFFFFF",
+        showlegend=False,
+        xaxis={
+            "range": [0, 30],
+            "visible": False,
+            "fixedrange": True,
+        },
+        yaxis={
+            "range": [-2.5, 15],
+            "visible": False,
+            "fixedrange": True,
+            "scaleanchor": "x",
+            "scaleratio": 1,
+        },
+        font={
+            "family": "Inter, Segoe UI, Arial",
+            "color": TEXT_COLOR,
+        },
+    )
+
+    return figure
+
+
 def build_energy_chart(
     kinetic_energy: float,
     elastic_energy: float,
@@ -808,9 +1099,26 @@ def render_prediction(
         value=f"{state['friction_force']:.3f} N",
         border=True,
     )
+        # ========================================================
+    # P1-E.1 · PHYSICAL KART VISUAL / REPRESENTACIÓN FÍSICA
+    # Spanish: En esta primera etapa se muestra el mecanismo
+    #          estático para validar su geometría y apariencia.
+    # English: This first stage displays the static mechanism
+    #          to validate its geometry and appearance.
+    # ========================================================
 
-    
-    
+    st.markdown("#### Representación del sistema")
+
+    with st.container(border=True):
+        st.plotly_chart(
+            build_kart_visual(),
+            use_container_width=True,
+            config={
+                "displayModeBar": False,
+                "responsive": True,
+            },
+        )
+
 
     # ========================================================
     # P1-C.2 · MOBILE-FIRST CHART LAYOUT
