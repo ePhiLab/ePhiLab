@@ -419,251 +419,121 @@ def build_speedometer(
 
 def build_kart_visual() -> go.Figure:
     """
-    Spanish: Construye una representación lateral simplificada del
-             ePhiKart basada en la geometría del prototipo real.
-             P1-E.1 utiliza una representación estática para validar
-             primero la apariencia y la disposición del mecanismo.
-
-    English: Builds a simplified side-view representation of the
-             ePhiKart based on the geometry of the real prototype.
-             P1-E.1 uses a static representation to validate the
-             appearance and mechanism layout first.
+    Spanish: Construye una vista lateral esquemática del ePhiKart real.
+             Se muestran solo elementos pedagógicos, sin dimensiones
+             ni detalles constructivos sensibles.
+    English: Builds a schematic side view of the real ePhiKart.
+             Only pedagogical elements are shown, without dimensions
+             or sensitive construction details.
     """
 
     figure = go.Figure()
 
-    # ========================================================
     # P1-E.1 · TRACK / PISTA
-    # Spanish: La línea horizontal representa la superficie
-    #          sobre la cual se desplaza el carrito.
-    # English: The horizontal line represents the surface on
-    #          which the cart moves.
-    # ========================================================
-
+    # Spanish: Referencia visual del suelo, no una cota dimensional.
+    # English: Visual ground reference, not a dimensional reference.
     figure.add_shape(
-        type="line",
-        x0=0.0,
-        x1=30.0,
-        y0=0.0,
-        y1=0.0,
-        line={
-            "color": "#627D98",
-            "width": 3,
-        },
+        type="line", x0=0.5, x1=29.5, y0=1.0, y1=1.0,
+        line={"color": "#8A99A8", "width": 3},
     )
 
-    # ========================================================
-    # P1-E.1 · CHASSIS / CHASIS
-    # Spanish: El prototipo tiene aproximadamente 26 cm de largo.
-    #          El chasis se representa en azul ESPOL para mantener
-    #          la identidad visual de e(Phi)Lab.
-    # English: The prototype is approximately 26 cm long.
-    #          The chassis is represented in ESPOL blue to preserve
-    #          the visual identity of e(Phi)Lab.
-    # ========================================================
-
+    # P1-E.1 · BLACK PLATFORM / PLATAFORMA NEGRA
+    # Spanish: Plataforma lateral que sostiene el conjunto impreso.
+    # English: Side platform supporting the printed mechanism.
     figure.add_shape(
-        type="rect",
-        x0=2.0,
-        x1=28.0,
-        y0=4.0,
-        y1=8.0,
-        line={
-            "color": ESPOL_BLUE,
-            "width": 2,
-        },
-        fillcolor="rgba(0, 28, 67, 0.88)",
+        type="rect", x0=3.0, x1=27.0, y0=4.0, y1=6.2,
+        line={"color": "#20262D", "width": 2},
+        fillcolor="#252B31",
     )
 
-    # ========================================================
-    # P1-E.1 · REAR WHEEL / RUEDA TRASERA
-    # Spanish: La rueda trasera motriz tiene 8.0 cm de diámetro.
-    # English: The driven rear wheel has an 8.0 cm diameter.
-    # ========================================================
+    # P1-E.1 · WHEELS / RUEDAS
+    # Spanish: Se conserva solo la diferencia visual entre ruedas.
+    # English: Only the visual size difference between wheels is preserved.
+    for x0, x1, y0, y1 in [
+        (3.5, 11.5, 1.0, 9.0),
+        (22.0, 27.5, 1.0, 6.5),
+    ]:
+        figure.add_shape(
+            type="circle", x0=x0, x1=x1, y0=y0, y1=y1,
+            line={"color": "#35AFC0", "width": 5},
+            fillcolor="#F4C515",
+        )
 
+    # Spanish: Centros amarillos de las ruedas impresas.
+    # English: Yellow hubs of the printed wheels.
     figure.add_shape(
-        type="circle",
-        x0=3.0,
-        x1=11.0,
-        y0=0.0,
-        y1=8.0,
-        line={
-            "color": ESPOL_BLUE,
-            "width": 3,
-        },
-        fillcolor="#FFFFFF",
+        type="circle", x0=6.8, x1=8.2, y0=4.3, y1=5.7,
+        line={"color": "#D5A900", "width": 2},
+        fillcolor="#F4C515",
+    )
+    figure.add_shape(
+        type="circle", x0=24.15, x1=25.35, y0=3.15, y1=4.35,
+        line={"color": "#D5A900", "width": 2},
+        fillcolor="#F4C515",
     )
 
+    # P1-E.1 · 3D-PRINTED SUPPORT / SOPORTE IMPRESO EN 3D
+    # Spanish: Conjunto mecánico amarillo visible sobre la plataforma.
+    # English: Yellow mechanical assembly visible above the platform.
     figure.add_shape(
-        type="circle",
-        x0=6.4,
-        x1=7.6,
-        y0=3.4,
-        y1=4.6,
-        line={
-            "color": INTERACTIVE_BLUE,
-            "width": 2,
-        },
-        fillcolor=INTERACTIVE_BLUE,
+        type="rect", x0=7.8, x1=15.3, y0=5.6, y1=8.0,
+        line={"color": "#D5A900", "width": 2},
+        fillcolor="#F4C515",
     )
 
-    # ========================================================
-    # P1-E.1 · FRONT WHEEL / RUEDA DELANTERA
-    # Spanish: La rueda delantera tiene 5.5 cm de diámetro.
-    # English: The front wheel has a 5.5 cm diameter.
-    # ========================================================
-
+    # P1-E.1 · VISIBLE LARGE GEAR / ENGRANAJE GRANDE VISIBLE
+    # Spanish: Solo se dibuja el engranaje grande visible lateralmente.
+    # English: Only the large gear visible from the side is drawn.
     figure.add_shape(
-        type="circle",
-        x0=21.25,
-        x1=26.75,
-        y0=0.0,
-        y1=5.5,
-        line={
-            "color": ESPOL_BLUE,
-            "width": 3,
-        },
-        fillcolor="#FFFFFF",
+        type="circle", x0=8.8, x1=15.8, y0=6.4, y1=13.4,
+        line={"color": "#D5A900", "width": 3},
+        fillcolor="#F4C515",
+    )
+    figure.add_shape(
+        type="circle", x0=11.6, x1=13.0, y0=9.2, y1=10.6,
+        line={"color": "#B48E00", "width": 2},
+        fillcolor="#FFF3A6",
     )
 
+    # P1-E.1 · FRONT BAND SUPPORT / SOPORTE DELANTERO DE LIGAS
+    # Spanish: Soporte frontal donde se fijan las dos ligas.
+    # English: Front support where both elastic bands are fixed.
     figure.add_shape(
-        type="circle",
-        x0=23.45,
-        x1=24.55,
-        y0=2.2,
-        y1=3.3,
-        line={
-            "color": INTERACTIVE_BLUE,
-            "width": 2,
-        },
-        fillcolor=INTERACTIVE_BLUE,
+        type="rect", x0=23.7, x1=27.2, y0=6.0, y1=8.2,
+        line={"color": "#D5A900", "width": 2},
+        fillcolor="#F4C515",
     )
 
-    # ========================================================
-    # P1-E.1 · GEAR TRAIN / TREN DE ENGRANAJES
-    # Spanish: El círculo mayor representa el engranaje donde
-    #          actúan las ligas. El círculo menor representa el
-    #          engranaje conectado al eje de las ruedas traseras.
-    # English: The larger circle represents the gear acted on by
-    #          the elastic bands. The smaller circle represents
-    #          the gear connected to the rear-wheel axle.
-    # ========================================================
-
-    figure.add_shape(
-        type="circle",
-        x0=8.0,
-        x1=14.0,
-        y0=7.0,
-        y1=13.0,
-        line={
-            "color": TECH_CYAN,
-            "width": 3,
-        },
-        fillcolor="rgba(56, 169, 224, 0.20)",
-    )
-
-    figure.add_shape(
-        type="circle",
-        x0=6.2,
-        x1=9.2,
-        y0=7.5,
-        y1=10.5,
-        line={
-            "color": INTERACTIVE_BLUE,
-            "width": 3,
-        },
-        fillcolor="rgba(22, 119, 184, 0.22)",
-    )
-
-    # ========================================================
     # P1-E.1 · ELASTIC BANDS / LIGAS ELÁSTICAS
-    # Spanish: Las dos líneas representan las dos ligas reales.
-    #          En esta primera versión solo validamos su ubicación.
-    # English: The two lines represent the two real elastic bands.
-    #          This first version only validates their location.
-    # ========================================================
-
+    # Spanish: Dos ligas desde el soporte frontal hacia el engranaje.
+    # English: Two bands running from the front support toward the gear.
     figure.add_shape(
-        type="line",
-        x0=11.0,
-        x1=25.5,
-        y0=10.5,
-        y1=7.4,
-        line={
-            "color": "#F39C12",
-            "width": 4,
-        },
+        type="line", x0=13.2, x1=25.2, y0=10.6, y1=7.6,
+        line={"color": "#E58A22", "width": 5},
     )
-
     figure.add_shape(
-        type="line",
-        x0=11.0,
-        x1=25.5,
-        y0=9.5,
-        y1=6.8,
-        line={
-            "color": "#8E44AD",
-            "width": 4,
-        },
+        type="line", x0=13.0, x1=25.2, y0=9.7, y1=7.0,
+        line={"color": "#7D4AA8", "width": 5},
     )
 
-    # ========================================================
-    # LABELS / ETIQUETAS
-    # ========================================================
-
+    # P1-E.1 · PEDAGOGICAL LABELS / ETIQUETAS PEDAGÓGICAS
+    # Spanish: Se omiten dimensiones, relaciones y detalles de fabricación.
+    # English: Dimensions, ratios, and manufacturing details are omitted.
     figure.add_annotation(
-        x=11.0,
-        y=13.8,
-        text="Engranaje grande",
-        showarrow=False,
-        font={
-            "size": 12,
-            "color": TEXT_COLOR,
-        },
+        x=12.3, y=14.0, text="Engranaje visible",
+        showarrow=False, font={"size": 12, "color": TEXT_COLOR},
     )
-
     figure.add_annotation(
-        x=7.0,
-        y=11.2,
-        text="Engranaje pequeño",
-        showarrow=False,
-        font={
-            "size": 11,
-            "color": TEXT_COLOR,
-        },
+        x=7.5, y=0.15, text="Rueda trasera · motriz",
+        showarrow=False, font={"size": 11, "color": MUTED_TEXT},
     )
-
     figure.add_annotation(
-        x=7.0,
-        y=-1.2,
-        text="Rueda trasera · Ø 8.0 cm",
-        showarrow=False,
-        font={
-            "size": 11,
-            "color": MUTED_TEXT,
-        },
+        x=24.8, y=0.15, text="Rueda delantera",
+        showarrow=False, font={"size": 11, "color": MUTED_TEXT},
     )
-
     figure.add_annotation(
-        x=24.0,
-        y=-1.2,
-        text="Rueda delantera · Ø 5.5 cm",
-        showarrow=False,
-        font={
-            "size": 11,
-            "color": MUTED_TEXT,
-        },
-    )
-
-    figure.add_annotation(
-        x=25.5,
-        y=11.5,
-        text="Movimiento →",
-        showarrow=False,
-        font={
-            "size": 13,
-            "color": INTERACTIVE_BLUE,
-        },
+        x=24.0, y=12.4, text="Movimiento →",
+        showarrow=False, font={"size": 13, "color": INTERACTIVE_BLUE},
     )
 
     figure.update_layout(
@@ -671,37 +541,22 @@ def build_kart_visual() -> go.Figure:
             "text": "Representación física del ePhiKart",
             "x": 0.02,
             "xanchor": "left",
-            "font": {
-                "size": 17,
-                "color": ESPOL_BLUE,
-            },
+            "font": {"size": 17, "color": ESPOL_BLUE},
         },
-        height=430,
-        margin={
-            "l": 15,
-            "r": 15,
-            "t": 60,
-            "b": 45,
-        },
+        height=410,
+        margin={"l": 10, "r": 10, "t": 55, "b": 30},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#FFFFFF",
         showlegend=False,
-        xaxis={
-            "range": [0, 30],
-            "visible": False,
-            "fixedrange": True,
-        },
+        xaxis={"range": [0, 30], "visible": False, "fixedrange": True},
         yaxis={
-            "range": [-2.5, 15],
+            "range": [-0.8, 15],
             "visible": False,
             "fixedrange": True,
             "scaleanchor": "x",
             "scaleratio": 1,
         },
-        font={
-            "family": "Inter, Segoe UI, Arial",
-            "color": TEXT_COLOR,
-        },
+        font={"family": "Inter, Segoe UI, Arial", "color": TEXT_COLOR},
     )
 
     return figure
