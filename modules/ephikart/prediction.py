@@ -762,73 +762,87 @@ def render_prediction(
         border=True,
     )
     # ========================================================
-    # P1-C.1 · SYNCHRONIZED CHARTS / GRÁFICAS SINCRONIZADAS
-    # Spanish: Se conserva la distribución visual anterior.
-    #          P1-C.1 únicamente oculta la trayectoria futura.
-    # English: The previous visual layout is preserved.
-    #          P1-C.1 only hides the future trajectory.
+    # P1-C.2 · MOBILE-FIRST CHART LAYOUT
+    #          DISTRIBUCIÓN DE GRÁFICAS MOBILE-FIRST
+    # Spanish: Posición y velocidad se muestran verticalmente y
+    #          ocupan todo el ancho disponible. Esto mejora la
+    #          lectura tanto en computadora como en smartphone.
+    # English: Position and velocity are displayed vertically
+    #          using the full available width. This improves
+    #          readability on both desktop and smartphone.
     # ========================================================
 
-    velocity_column, position_column = st.columns(2, gap="medium")
+    # --------------------------------------------------------
+    # POSITION x(t) / POSICIÓN x(t)
+    # --------------------------------------------------------
 
-    with velocity_column:
-        st.slider(
-            "Tiempo de observación para v(t), t (s)",
-            min_value=0.0,
-            max_value=float(duration),
-            step=0.02,
-            key="t_v",
-            on_change=sync_observation_time,
-            args=("t_v", float(duration)),
-        )
+    st.slider(
+        "Tiempo de observación para x(t), t (s)",
+        min_value=0.0,
+        max_value=float(duration),
+        step=0.02,
+        key="t_x",
+        on_change=sync_observation_time,
+        args=("t_x", float(duration)),
+    )
 
-        velocity_figure = build_progressive_chart(
-            complete_time=simulation["time"],
-            complete_values=simulation["velocity"],
-            observation_time=state["time"],
-            observation_value=state["velocity"],
-            release_time=release_time,
-            title="Velocidad vs. tiempo",
-            y_title="Velocidad, v (m/s)",
-            line_name="v(t)",
-            line_color=INTERACTIVE_BLUE,
-        )
+    position_figure = build_progressive_chart(
+        complete_time=simulation["time"],
+        complete_values=simulation["position"],
+        observation_time=state["time"],
+        observation_value=state["position"],
+        release_time=release_time,
+        title="Posición vs. tiempo",
+        y_title="Posición, x (m)",
+        line_name="x(t)",
+        line_color=POSITION_GREEN,
+    )
 
-        st.plotly_chart(
-            velocity_figure,
-            use_container_width=True,
-            config={"displaylogo": False, "responsive": True},
-        )
+    st.plotly_chart(
+        position_figure,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "responsive": True,
+        },
+    )
 
-    with position_column:
-        st.slider(
-            "Tiempo de observación para x(t), t (s)",
-            min_value=0.0,
-            max_value=float(duration),
-            step=0.02,
-            key="t_x",
-            on_change=sync_observation_time,
-            args=("t_x", float(duration)),
-        )
+    # --------------------------------------------------------
+    # VELOCITY v(t) / VELOCIDAD v(t)
+    # --------------------------------------------------------
 
-        position_figure = build_progressive_chart(
-            complete_time=simulation["time"],
-            complete_values=simulation["position"],
-            observation_time=state["time"],
-            observation_value=state["position"],
-            release_time=release_time,
-            title="Posición vs. tiempo",
-            y_title="Posición, x (m)",
-            line_name="x(t)",
-            line_color=POSITION_GREEN,
-        )
+    st.slider(
+        "Tiempo de observación para v(t), t (s)",
+        min_value=0.0,
+        max_value=float(duration),
+        step=0.02,
+        key="t_v",
+        on_change=sync_observation_time,
+        args=("t_v", float(duration)),
+    )
 
-        st.plotly_chart(
-            position_figure,
-            use_container_width=True,
-            config={"displaylogo": False, "responsive": True},
-        )
+    velocity_figure = build_progressive_chart(
+        complete_time=simulation["time"],
+        complete_values=simulation["velocity"],
+        observation_time=state["time"],
+        observation_value=state["velocity"],
+        release_time=release_time,
+        title="Velocidad vs. tiempo",
+        y_title="Velocidad, v (m/s)",
+        line_name="v(t)",
+        line_color=INTERACTIVE_BLUE,
+    )
 
+    st.plotly_chart(
+        velocity_figure,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "responsive": True,
+        },
+    )
+
+    
     acceleration_column, gauge_column = st.columns(
         [1.35, 1],
         gap="medium",
