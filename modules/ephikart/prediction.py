@@ -761,29 +761,26 @@ def render_prediction(
         f"{state['friction_force']:.3f} N",
         border=True,
     )
-      # ========================================================
-    # P1-C.2 · MOBILE-FIRST CHARTS / GRÁFICAS MOBILE-FIRST
-    # Spanish: Las gráficas se presentan verticalmente para
-    #          facilitar su lectura en teléfonos y tabletas.
-    # English: Charts are displayed vertically to improve
-    #          readability on phones and tablets.
+    # ========================================================
+    # P1-C.1 · SYNCHRONIZED CHARTS / GRÁFICAS SINCRONIZADAS
+    # Spanish: Se conserva la distribución visual anterior.
+    #          P1-C.1 únicamente oculta la trayectoria futura.
+    # English: The previous visual layout is preserved.
+    #          P1-C.1 only hides the future trajectory.
     # ========================================================
 
-    # --------------------------------------------------------
-    # POSITION x(t) / POSICIÓN x(t)
-    # --------------------------------------------------------
-     
-   
-    
-    st.slider(
-        "Tiempo de observación para v(t), t (s)",
-        min_value=0.0,
-        max_value=float(duration),
-        step=0.02,
-        key="t_v",
-        on_change=sync_observation_time,
-        args=("t_v", float(duration)),
-    )
+    velocity_column, position_column = st.columns(2, gap="medium")
+
+    with velocity_column:
+        st.slider(
+            "Tiempo de observación para v(t), t (s)",
+            min_value=0.0,
+            max_value=float(duration),
+            step=0.02,
+            key="t_v",
+            on_change=sync_observation_time,
+            args=("t_v", float(duration)),
+        )
 
         velocity_figure = build_progressive_chart(
             complete_time=simulation["time"],
@@ -796,20 +793,14 @@ def render_prediction(
             line_name="v(t)",
             line_color=INTERACTIVE_BLUE,
         )
-    
+
         st.plotly_chart(
             velocity_figure,
             use_container_width=True,
-            config={
-                "displaylogo": False,
-                "responsive": True,
-            },
+            config={"displaylogo": False, "responsive": True},
         )
-    
+
     with position_column:
-        # P1-B · MIRROR SLIDER x(t) / SLIDER ESPEJO x(t)
-        # Spanish: Mover este control actualiza el mismo t_obs global.
-        # English: Moving this control updates the same global t_obs.
         st.slider(
             "Tiempo de observación para x(t), t (s)",
             min_value=0.0,
@@ -831,29 +822,19 @@ def render_prediction(
             line_name="x(t)",
             line_color=POSITION_GREEN,
         )
-    
+
         st.plotly_chart(
             position_figure,
             use_container_width=True,
-            config={
-                "displaylogo": False,
-                "responsive": True,
-            },
+            config={"displaylogo": False, "responsive": True},
         )
-    
-    
-    
-    
-    
+
     acceleration_column, gauge_column = st.columns(
         [1.35, 1],
         gap="medium",
     )
-    
+
     with acceleration_column:
-        # P1-B · MIRROR SLIDER a(t) / SLIDER ESPEJO a(t)
-        # Spanish: Mover este control actualiza el mismo t_obs global.
-        # English: Moving this control updates the same global t_obs.
         st.slider(
             "Tiempo de observación para a(t), t (s)",
             min_value=0.0,
@@ -875,45 +856,40 @@ def render_prediction(
             line_name="a(t)",
             line_color=ACCELERATION_RED,
         )
-    
+
         st.plotly_chart(
             acceleration_figure,
             use_container_width=True,
-            config={
-                "displaylogo": False,
-                "responsive": True,
-            },
+            config={"displaylogo": False, "responsive": True},
         )
-    
+
     with gauge_column:
         with st.container(border=True):
             maximum_speed = float(
                 np.max(np.abs(simulation["velocity"]))
             )
-    
+
             st.plotly_chart(
                 build_speedometer(
                     velocity=state["velocity"],
                     maximum_speed=maximum_speed,
                 ),
                 use_container_width=True,
-                config={
-                    "displayModeBar": False,
-                },
+                config={"displayModeBar": False},
             )
-    
+
             if state["velocity"] > 0.01:
                 movement_state = "Movimiento hacia adelante"
             elif state["velocity"] < -0.01:
                 movement_state = "Movimiento hacia atrás"
             else:
                 movement_state = "Carrito detenido"
-    
+
             if state["band_active"]:
                 band_state = "Liga actuando"
             else:
                 band_state = "Liga suelta"
-    
+
             st.markdown(
                 f"""
                 <div style="
@@ -929,6 +905,7 @@ def render_prediction(
                 """,
                 unsafe_allow_html=True,
             )
+
     ## ******************************************************
     ## BALANCE ENERGETICO
     ##****************************************************
