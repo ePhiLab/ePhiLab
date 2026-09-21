@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import base64
+from pathlib import Path
+
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
@@ -417,189 +420,181 @@ def build_speedometer(
 
     return figure
 
-def build_kart_visual() -> go.Figure:
+def _image_file_to_data_uri(image_path: Path) -> str:
     """
-    Spanish: Construye una vista lateral esquemática del ePhiKart real.
-             P1-E.1 respeta el orden visual de las piezas observado en
-             el prototipo y omite dimensiones y detalles constructivos.
+    Spanish: Convierte la imagen local del carrito en un URI embebido
+             para que Plotly pueda desplazarla dentro de la simulación.
+    English: Converts the local cart image into an embedded URI so
+             Plotly can move it inside the simulation.
+    """
 
-    English: Builds a schematic side view of the real ePhiKart.
-             P1-E.1 follows the visual stacking observed in the
-             prototype and omits dimensions and construction details.
+    encoded_image = base64.b64encode(image_path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded_image}"
+
+
+def build_kart_visual(
+    position: float,
+    velocity: float,
+    band_active: bool,
+    observation_time: float,
+    minimum_position: float,
+    maximum_position: float,
+) -> go.Figure:
+    """
+    Spanish: Muestra la imagen aprobada del ePhiKart como un objeto móvil.
+             La posición horizontal se sincroniza con x(t), mientras que
+             el texto inferior comunica el estado físico instantáneo.
+
+    English: Displays the approved ePhiKart image as a moving object.
+             Horizontal position is synchronized with x(t), while the
+             lower text communicates the instantaneous physical state.
     """
 
     figure = go.Figure()
 
     # ========================================================
-    # P1-E.1 · TRACK / PISTA
-    # Spanish: Referencia visual del suelo, no una cota dimensional.
-    # English: Visual ground reference, not a dimensional reference.
+    # P1-E.2 · APPROVED KART IMAGE / IMAGEN APROBADA DEL CARRITO
+    # Spanish: Se usa exactamente el recurso gráfico guardado en assets.
+    #          No se reconstruye el carrito con formas de Plotly.
+    # English: The exact graphic resource stored in assets is used.
+    #          The cart is no longer reconstructed with Plotly shapes.
+    # ========================================================
+    project_root = Path(__file__).resolve().parents[2]
+    kart_image_path = (
+        project_root
+        / "assets"
+        / "ephikart"
+        / "kart_simulation.png"
+    )
+
+    # Spanish: Si falta el recurso, se genera un error claro para GitHub/Cloud.
+    # English: If the asset is missing, a clear GitHub/Cloud error is raised.
+    if not kart_image_path.exists():
+        raise FileNotFoundError(
+            "No se encontró assets/ephikart/kart_simulation.png"
+        )
+
+    kart_source = _image_file_to_data_uri(kart_image_path)
+
+    # ========================================================
+    # P1-E.2 · VISUAL POSITION / POSICIÓN VISUAL
+    # Spanish: x(t) se normaliza únicamente para ubicar la miniatura
+    #          dentro del escenario. La etiqueta conserva el valor físico real.
+    # English: x(t) is normalized only to place the thumbnail inside the
+    #          stage. The label preserves the actual physical value.
+    # ========================================================
+    position_span = maximum_position - minimum_position
+
+    if abs(position_span) < 1e-12:
+        normalized_position = 0.0
+    else:
+        normalized_position = (
+            (position - minimum_position) / position_span
+        )
+
+    normalized_position = max(
+        0.0,
+        min(float(normalized_position), 1.0),
+    )
+
+    # Spanish: La miniatura se desplaza de izquierda a derecha sin salir del marco.
+    # English: The thumbnail moves left-to-right without leaving the frame.
+    kart_width = 34.0
+    kart_height = 20.0
+    left_limit = 3.0
+    right_limit = 97.0 - kart_width
+    kart_x = left_limit + normalized_position * (right_limit - left_limit)
+
+    figure.add_layout_image(
+        dict(
+            source=kart_source,
+            xref="x",
+            yref="y",
+            x=kart_x,
+            y=24.0,
+            sizex=kart_width,
+            sizey=kart_height,
+            xanchor="left",
+            yanchor="top",
+            sizing="contain",
+            opacity=1.0,
+            layer="above",
+        )
+    )
+
+    # ========================================================
+    # P1-E.2 · TRACK / PISTA
+    # Spanish: La pista permanece fija; solo se desplaza el carrito.
+    # English: The track remains fixed; only the cart moves.
     # ========================================================
     figure.add_shape(
         type="line",
-        x0=0.5, x1=29.5, y0=1.0, y1=1.0,
+        x0=1.0,
+        x1=99.0,
+        y0=4.0,
+        y1=4.0,
         line={"color": "#8A99A8", "width": 3},
+        layer="below",
     )
 
     # ========================================================
-    # P1-E.1 · BLACK PLATFORM / PLATAFORMA NEGRA
-    # Spanish: La plataforma queda detrás de ruedas y piezas impresas.
-    # English: The platform remains behind the wheels and printed parts.
+    # P1-E.2 · INSTANTANEOUS STATE / ESTADO INSTANTÁNEO
+    # Spanish: La imagen muestra el carrito; estas etiquetas indican
+    #          el estado físico calculado en el mismo t_obs.
+    # English: The image shows the cart; these labels indicate the
+    #          physical state calculated at the same t_obs.
     # ========================================================
-    figure.add_shape(
-        type="rect",
-        x0=3.0, x1=27.0, y0=4.0, y1=6.2,
-        line={"color": "#20262D", "width": 2},
-        fillcolor="#252B31",
-    )
+    if band_active:
+        elastic_state = "Ligas actuando · transmisión activa"
+    else:
+        elastic_state = "Ligas liberadas · sin impulso elástico"
 
-    # ========================================================
-    # P1-E.1 · 3D-PRINTED SUPPORT / SOPORTE IMPRESO EN 3D
-    # Spanish: El soporte del engranaje se dibuja antes de la rueda
-    #          trasera para que esta quede visualmente por delante.
-    # English: The gear support is drawn before the rear wheel so
-    #          the rear wheel remains visually in the foreground.
-    # ========================================================
-    figure.add_shape(
-        type="rect",
-        x0=7.8, x1=15.3, y0=5.6, y1=8.0,
-        line={"color": "#D5A900", "width": 2},
-        fillcolor="#F4C515",
-    )
+    if velocity > 0.01:
+        motion_state = "Movimiento hacia adelante"
+    elif velocity < -0.01:
+        motion_state = "Movimiento hacia atrás"
+    else:
+        motion_state = "Carrito detenido"
 
-    # ========================================================
-    # P1-E.1 · GRADUATED GEAR / ENGRANAJE GRADUADO
-    # Spanish: Solo se representa el engranaje grande visible.
-    # English: Only the large visible gear is represented.
-    # ========================================================
-    figure.add_shape(
-        type="circle",
-        x0=8.8, x1=15.8, y0=6.4, y1=13.4,
-        line={"color": "#D5A900", "width": 3},
-        fillcolor="#F4C515",
-    )
-    figure.add_shape(
-        type="circle",
-        x0=11.6, x1=13.0, y0=9.2, y1=10.6,
-        line={"color": "#B48E00", "width": 2},
-        fillcolor="#FFF3A6",
-    )
-
-    # ========================================================
-    # P1-E.1 · FRONT BAND SUPPORT / SOPORTE DELANTERO DE LIGAS
-    # Spanish: El anclaje está físicamente detrás de la rueda
-    #          delantera; por eso se dibuja antes que dicha rueda.
-    # English: The anchor is physically behind the front wheel,
-    #          so it is drawn before the front wheel.
-    # ========================================================
-    figure.add_shape(
-        type="rect",
-        x0=23.7, x1=27.2, y0=6.0, y1=8.2,
-        line={"color": "#D5A900", "width": 2},
-        fillcolor="#F4C515",
-    )
-
-    # ========================================================
-    # P1-E.1 · ELASTIC BANDS / LIGAS ELÁSTICAS
-    # Spanish: Las líneas comienzan en el borde visible del engranaje,
-    #          evitando mostrar una sección de liga sobre su cara.
-    #          Las ligas y su anclaje permanecen detrás de las ruedas.
-    # English: Lines begin at the visible edge of the gear, avoiding
-    #          a band segment drawn across its face. Bands and anchor
-    #          remain behind the wheels.
-    # ========================================================
-    figure.add_shape(
-        type="line",
-        x0=15.0, x1=25.2, y0=10.4, y1=7.6,
-        line={"color": "#E58A22", "width": 5},
-    )
-    figure.add_shape(
-        type="line",
-        x0=14.9, x1=25.2, y0=9.7, y1=7.0,
-        line={"color": "#7D4AA8", "width": 5},
-    )
-
-    # ========================================================
-    # P1-E.1 · FRONT WHEEL / RUEDA DELANTERA
-    # Spanish: Se dibuja después del anclaje para quedar por delante.
-    # English: Drawn after the anchor so it remains in the foreground.
-    # ========================================================
-    figure.add_shape(
-        type="circle",
-        x0=22.0, x1=27.5, y0=1.0, y1=6.5,
-        line={"color": "#35AFC0", "width": 5},
-        fillcolor="#F4C515",
-    )
-    figure.add_shape(
-        type="circle",
-        x0=24.15, x1=25.35, y0=3.15, y1=4.35,
-        line={"color": "#D5A900", "width": 2},
-        fillcolor="#F4C515",
-    )
-
-    # ========================================================
-    # P1-E.1 · REAR DRIVEN WHEEL / RUEDA TRASERA MOTRIZ
-    # Spanish: La rueda trasera se dibuja al final para quedar por
-    #          encima del soporte y del engranaje, como en la vista real.
-    # English: The rear wheel is drawn last so it appears above the
-    #          support and gear, matching the real side view.
-    # ========================================================
-    figure.add_shape(
-        type="circle",
-        x0=3.5, x1=11.5, y0=1.0, y1=9.0,
-        line={"color": "#35AFC0", "width": 5},
-        fillcolor="#F4C515",
-    )
-    figure.add_shape(
-        type="circle",
-        x0=6.8, x1=8.2, y0=4.3, y1=5.7,
-        line={"color": "#D5A900", "width": 2},
-        fillcolor="#F4C515",
-    )
-
-    # ========================================================
-    # P1-E.1 · PEDAGOGICAL LABELS / ETIQUETAS PEDAGÓGICAS
-    # Spanish: Se omiten dimensiones y detalles de fabricación.
-    # English: Dimensions and manufacturing details are omitted.
-    # ========================================================
     figure.add_annotation(
-        x=12.3, y=14.0, text="Engranaje graduado",
-        showarrow=False, font={"size": 12, "color": TEXT_COLOR},
+        x=50,
+        y=28.2,
+        text=(
+            f"<b>t = {observation_time:.2f} s</b>"
+            f" &nbsp;·&nbsp; x = {position:.3f} m"
+        ),
+        showarrow=False,
+        font={"size": 13, "color": ESPOL_BLUE},
     )
+
     figure.add_annotation(
-        x=7.5, y=0.15, text="Rueda trasera · motriz",
-        showarrow=False, font={"size": 11, "color": MUTED_TEXT},
-    )
-    figure.add_annotation(
-        x=24.8, y=0.15, text="Rueda delantera",
-        showarrow=False, font={"size": 11, "color": MUTED_TEXT},
-    )
-    figure.add_annotation(
-        x=24.0, y=12.4, text="Movimiento →",
-        showarrow=False, font={"size": 13, "color": INTERACTIVE_BLUE},
+        x=50,
+        y=1.3,
+        text=f"<b>{motion_state}</b> &nbsp;·&nbsp; {elastic_state}",
+        showarrow=False,
+        font={"size": 12, "color": TEXT_COLOR},
     )
 
     figure.update_layout(
-        title={
-            "text": "Representación física del ePhiKart",
-            "x": 0.02,
-            "xanchor": "left",
-            "font": {"size": 17, "color": ESPOL_BLUE},
-        },
-        height=410,
-        margin={"l": 10, "r": 10, "t": 55, "b": 30},
+        height=360,
+        margin={"l": 5, "r": 5, "t": 15, "b": 15},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#FFFFFF",
         showlegend=False,
-        xaxis={"range": [0, 30], "visible": False, "fixedrange": True},
-        yaxis={
-            "range": [-0.8, 15],
+        xaxis={
+            "range": [0, 100],
             "visible": False,
             "fixedrange": True,
-            "scaleanchor": "x",
-            "scaleratio": 1,
         },
-        font={"family": "Inter, Segoe UI, Arial", "color": TEXT_COLOR},
+        yaxis={
+            "range": [0, 30],
+            "visible": False,
+            "fixedrange": True,
+        },
+        font={
+            "family": "Inter, Segoe UI, Arial",
+            "color": TEXT_COLOR,
+        },
     )
 
     return figure
@@ -998,18 +993,25 @@ def render_prediction(
         border=True,
     )
         # ========================================================
-    # P1-E.1 · PHYSICAL KART VISUAL / REPRESENTACIÓN FÍSICA
-    # Spanish: En esta primera etapa se muestra el mecanismo
-    #          estático para validar su geometría y apariencia.
-    # English: This first stage displays the static mechanism
-    #          to validate its geometry and appearance.
+    # P1-E.2 · DYNAMIC KART VISUAL / REPRESENTACIÓN DINÁMICA
+    # Spanish: La imagen aprobada del carrito se desplaza según x(t)
+    #          y comunica el estado físico correspondiente a t_obs.
+    # English: The approved cart image moves according to x(t) and
+    #          communicates the physical state corresponding to t_obs.
     # ========================================================
 
     st.markdown("#### Representación del sistema")
 
     with st.container(border=True):
         st.plotly_chart(
-            build_kart_visual(),
+            build_kart_visual(
+                position=state["position"],
+                velocity=state["velocity"],
+                band_active=state["band_active"],
+                observation_time=state["time"],
+                minimum_position=float(np.min(simulation["position"])),
+                maximum_position=float(np.max(simulation["position"])),
+            ),
             use_container_width=True,
             config={
                 "displayModeBar": False,
