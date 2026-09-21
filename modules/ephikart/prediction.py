@@ -420,107 +420,150 @@ def build_speedometer(
 def build_kart_visual() -> go.Figure:
     """
     Spanish: Construye una vista lateral esquemática del ePhiKart real.
-             Se muestran solo elementos pedagógicos, sin dimensiones
-             ni detalles constructivos sensibles.
+             P1-E.1 respeta el orden visual de las piezas observado en
+             el prototipo y omite dimensiones y detalles constructivos.
+
     English: Builds a schematic side view of the real ePhiKart.
-             Only pedagogical elements are shown, without dimensions
-             or sensitive construction details.
+             P1-E.1 follows the visual stacking observed in the
+             prototype and omits dimensions and construction details.
     """
 
     figure = go.Figure()
 
+    # ========================================================
     # P1-E.1 · TRACK / PISTA
     # Spanish: Referencia visual del suelo, no una cota dimensional.
     # English: Visual ground reference, not a dimensional reference.
+    # ========================================================
     figure.add_shape(
-        type="line", x0=0.5, x1=29.5, y0=1.0, y1=1.0,
+        type="line",
+        x0=0.5, x1=29.5, y0=1.0, y1=1.0,
         line={"color": "#8A99A8", "width": 3},
     )
 
+    # ========================================================
     # P1-E.1 · BLACK PLATFORM / PLATAFORMA NEGRA
-    # Spanish: Plataforma lateral que sostiene el conjunto impreso.
-    # English: Side platform supporting the printed mechanism.
+    # Spanish: La plataforma queda detrás de ruedas y piezas impresas.
+    # English: The platform remains behind the wheels and printed parts.
+    # ========================================================
     figure.add_shape(
-        type="rect", x0=3.0, x1=27.0, y0=4.0, y1=6.2,
+        type="rect",
+        x0=3.0, x1=27.0, y0=4.0, y1=6.2,
         line={"color": "#20262D", "width": 2},
         fillcolor="#252B31",
     )
 
-    # P1-E.1 · WHEELS / RUEDAS
-    # Spanish: Se conserva solo la diferencia visual entre ruedas.
-    # English: Only the visual size difference between wheels is preserved.
-    for x0, x1, y0, y1 in [
-        (3.5, 11.5, 1.0, 9.0),
-        (22.0, 27.5, 1.0, 6.5),
-    ]:
-        figure.add_shape(
-            type="circle", x0=x0, x1=x1, y0=y0, y1=y1,
-            line={"color": "#35AFC0", "width": 5},
-            fillcolor="#F4C515",
-        )
-
-    # Spanish: Centros amarillos de las ruedas impresas.
-    # English: Yellow hubs of the printed wheels.
-    figure.add_shape(
-        type="circle", x0=6.8, x1=8.2, y0=4.3, y1=5.7,
-        line={"color": "#D5A900", "width": 2},
-        fillcolor="#F4C515",
-    )
-    figure.add_shape(
-        type="circle", x0=24.15, x1=25.35, y0=3.15, y1=4.35,
-        line={"color": "#D5A900", "width": 2},
-        fillcolor="#F4C515",
-    )
-
+    # ========================================================
     # P1-E.1 · 3D-PRINTED SUPPORT / SOPORTE IMPRESO EN 3D
-    # Spanish: Conjunto mecánico amarillo visible sobre la plataforma.
-    # English: Yellow mechanical assembly visible above the platform.
+    # Spanish: El soporte del engranaje se dibuja antes de la rueda
+    #          trasera para que esta quede visualmente por delante.
+    # English: The gear support is drawn before the rear wheel so
+    #          the rear wheel remains visually in the foreground.
+    # ========================================================
     figure.add_shape(
-        type="rect", x0=7.8, x1=15.3, y0=5.6, y1=8.0,
+        type="rect",
+        x0=7.8, x1=15.3, y0=5.6, y1=8.0,
         line={"color": "#D5A900", "width": 2},
         fillcolor="#F4C515",
     )
 
-    # P1-E.1 · VISIBLE LARGE GEAR / ENGRANAJE GRANDE VISIBLE
-    # Spanish: Solo se dibuja el engranaje grande visible lateralmente.
-    # English: Only the large gear visible from the side is drawn.
+    # ========================================================
+    # P1-E.1 · GRADUATED GEAR / ENGRANAJE GRADUADO
+    # Spanish: Solo se representa el engranaje grande visible.
+    # English: Only the large visible gear is represented.
+    # ========================================================
     figure.add_shape(
-        type="circle", x0=8.8, x1=15.8, y0=6.4, y1=13.4,
+        type="circle",
+        x0=8.8, x1=15.8, y0=6.4, y1=13.4,
         line={"color": "#D5A900", "width": 3},
         fillcolor="#F4C515",
     )
     figure.add_shape(
-        type="circle", x0=11.6, x1=13.0, y0=9.2, y1=10.6,
+        type="circle",
+        x0=11.6, x1=13.0, y0=9.2, y1=10.6,
         line={"color": "#B48E00", "width": 2},
         fillcolor="#FFF3A6",
     )
 
+    # ========================================================
     # P1-E.1 · FRONT BAND SUPPORT / SOPORTE DELANTERO DE LIGAS
-    # Spanish: Soporte frontal donde se fijan las dos ligas.
-    # English: Front support where both elastic bands are fixed.
+    # Spanish: El anclaje está físicamente detrás de la rueda
+    #          delantera; por eso se dibuja antes que dicha rueda.
+    # English: The anchor is physically behind the front wheel,
+    #          so it is drawn before the front wheel.
+    # ========================================================
     figure.add_shape(
-        type="rect", x0=23.7, x1=27.2, y0=6.0, y1=8.2,
+        type="rect",
+        x0=23.7, x1=27.2, y0=6.0, y1=8.2,
         line={"color": "#D5A900", "width": 2},
         fillcolor="#F4C515",
     )
 
+    # ========================================================
     # P1-E.1 · ELASTIC BANDS / LIGAS ELÁSTICAS
-    # Spanish: Dos ligas desde el soporte frontal hacia el engranaje.
-    # English: Two bands running from the front support toward the gear.
+    # Spanish: Las líneas comienzan en el borde visible del engranaje,
+    #          evitando mostrar una sección de liga sobre su cara.
+    #          Las ligas y su anclaje permanecen detrás de las ruedas.
+    # English: Lines begin at the visible edge of the gear, avoiding
+    #          a band segment drawn across its face. Bands and anchor
+    #          remain behind the wheels.
+    # ========================================================
     figure.add_shape(
-        type="line", x0=13.2, x1=25.2, y0=10.6, y1=7.6,
+        type="line",
+        x0=15.0, x1=25.2, y0=10.4, y1=7.6,
         line={"color": "#E58A22", "width": 5},
     )
     figure.add_shape(
-        type="line", x0=13.0, x1=25.2, y0=9.7, y1=7.0,
+        type="line",
+        x0=14.9, x1=25.2, y0=9.7, y1=7.0,
         line={"color": "#7D4AA8", "width": 5},
     )
 
+    # ========================================================
+    # P1-E.1 · FRONT WHEEL / RUEDA DELANTERA
+    # Spanish: Se dibuja después del anclaje para quedar por delante.
+    # English: Drawn after the anchor so it remains in the foreground.
+    # ========================================================
+    figure.add_shape(
+        type="circle",
+        x0=22.0, x1=27.5, y0=1.0, y1=6.5,
+        line={"color": "#35AFC0", "width": 5},
+        fillcolor="#F4C515",
+    )
+    figure.add_shape(
+        type="circle",
+        x0=24.15, x1=25.35, y0=3.15, y1=4.35,
+        line={"color": "#D5A900", "width": 2},
+        fillcolor="#F4C515",
+    )
+
+    # ========================================================
+    # P1-E.1 · REAR DRIVEN WHEEL / RUEDA TRASERA MOTRIZ
+    # Spanish: La rueda trasera se dibuja al final para quedar por
+    #          encima del soporte y del engranaje, como en la vista real.
+    # English: The rear wheel is drawn last so it appears above the
+    #          support and gear, matching the real side view.
+    # ========================================================
+    figure.add_shape(
+        type="circle",
+        x0=3.5, x1=11.5, y0=1.0, y1=9.0,
+        line={"color": "#35AFC0", "width": 5},
+        fillcolor="#F4C515",
+    )
+    figure.add_shape(
+        type="circle",
+        x0=6.8, x1=8.2, y0=4.3, y1=5.7,
+        line={"color": "#D5A900", "width": 2},
+        fillcolor="#F4C515",
+    )
+
+    # ========================================================
     # P1-E.1 · PEDAGOGICAL LABELS / ETIQUETAS PEDAGÓGICAS
-    # Spanish: Se omiten dimensiones, relaciones y detalles de fabricación.
-    # English: Dimensions, ratios, and manufacturing details are omitted.
+    # Spanish: Se omiten dimensiones y detalles de fabricación.
+    # English: Dimensions and manufacturing details are omitted.
+    # ========================================================
     figure.add_annotation(
-        x=12.3, y=14.0, text="Engranaje visible",
+        x=12.3, y=14.0, text="Engranaje graduado",
         showarrow=False, font={"size": 12, "color": TEXT_COLOR},
     )
     figure.add_annotation(
