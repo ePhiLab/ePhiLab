@@ -47,6 +47,7 @@ TIME_SLIDER_KEYS = (
     "t_x",
     "t_v",
     "t_a",
+    "t_energy",
 )
 
 # P1-M · FINE TIME CONTROL / CONTROL TEMPORAL FINO
@@ -199,6 +200,7 @@ def reset_prediction() -> None:
         "t_x",
         "t_v",
         "t_a",
+        "t_energy",
         "t_manual",
     ]
 
@@ -1506,6 +1508,32 @@ def render_prediction(
     ##****************************************************
     st.markdown("## 4. Balance energético")
     
+
+    # ========================================================
+    # P1-E.6 · ENERGY TIME MIRROR / ESPEJO TEMPORAL DE ENERGÍA
+    # Spanish: Permite explorar el balance energético sin regresar
+    #          al carrito y modifica exactamente el mismo t_obs.
+    # English: Lets students explore the energy balance without
+    #          returning to the cart and updates the exact same t_obs.
+    # ========================================================
+    st.slider(
+        "Tiempo de observación para energía, t (s)",
+        min_value=0.0,
+        max_value=float(duration),
+        step=TIME_STEP,
+        key="t_energy",
+        on_change=sync_observation_time,
+        args=("t_energy", float(duration)),
+        help=(
+            "Control espejo del tiempo global. Al moverlo se actualizan "
+            "el balance energético y todos los elementos asociados a t_obs."
+        ),
+    )
+
+    st.caption(
+        f"Balance energético mostrado en t = {state['time']:.2f} s"
+    )
+
     with st.container(border=True):
     
         # ---------------------------------------------------------
