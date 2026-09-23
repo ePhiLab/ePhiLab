@@ -441,34 +441,61 @@ def build_kart_visual(
     maximum_position: float,
 ) -> go.Figure:
     """
-    Spanish: Muestra la imagen aprobada del ePhiKart como un objeto móvil.
-             La posición horizontal se sincroniza con x(t), mientras que
-             el texto inferior comunica el estado físico instantáneo.
-
-    English: Displays the approved ePhiKart image as a moving object.
-             Horizontal position is synchronized with x(t), while the
-             lower text communicates the instantaneous physical state.
+    Spanish: Representa el ePhiKart sobre una regla dinámica fija en metros.
+             La regla usa el recorrido completo y el carrito se ubica según x(t_obs).
+    English: Represents ePhiKart on a fixed dynamic ruler in meters.
+             The ruler uses the full trajectory and the cart is placed from x(t_obs).
     """
 
     figure = go.Figure()
 
-    # ========================================================
-    # P1-E.2 · APPROVED KART IMAGE / IMAGEN APROBADA DEL CARRITO
-    # Spanish: Se usa exactamente el recurso gráfico guardado en assets.
-    #          No se reconstruye el carrito con formas de Plotly.
-    # English: The exact graphic resource stored in assets is used.
-    #          The cart is no longer reconstructed with Plotly shapes.
-    # ========================================================
-    project_root = Path(__file__).resolve().parents[2]
-    kart_image_path = (
-        project_root
-        / "assets"
-        / "ephikart"
-        / "kart_simulation.png"
-    )
+    # P1-E.2 · FIXED DYNAMIC SCALE / ESCALA DINÁMICA FIJA
+    # Spanish: El rango depende de toda la simulación, nunca del t_obs actual.
+    # English: The range depends on the whole simulation, never on current t_obs.
+    physical_min = float(min(minimum_position, maximum_position))
+    physical_max = float(max(minimum_position, maximum_position))
+    physical_span = physical_max - physical_min
 
-    # Spanish: Si falta el recurso, se genera un error claro para GitHub/Cloud.
-    # English: If the asset is missing, a clear GitHub/Cloud error is raised.
+    if physical_span < 1e-9:
+        physical_span = 1.0
+        physical_max = physical_min + physical_span
+
+    margin = max(0.08 * physical_span, 0.05)
+    scale_min = physical_min - margin
+    scale_max = physical_max + margin
+    scale_span = scale_max - scale_min
+
+    # P1-E.2 · NICE TICKS / DIVISIONES LEGIBLES
+    # Spanish: Pasos 1-2-5 producen aproximadamente 5–7 referencias.
+    # English: 1-2-5 steps produce approximately 5–7 references.
+    raw_step = scale_span / 6.0
+    magnitude = 10.0 ** np.floor(np.log10(max(raw_step, 1e-12)))
+    normalized_step = raw_step / magnitude
+
+    if normalized_step <= 1.0:
+        nice_factor = 1.0
+    elif normalized_step <= 2.0:
+        nice_factor = 2.0
+    elif normalized_step <= 5.0:
+        nice_factor = 5.0
+    else:
+        nice_factor = 10.0
+
+    tick_step = nice_factor * magnitude
+    axis_min = float(np.floor(scale_min / tick_step) * tick_step)
+    axis_max = float(np.ceil(scale_max / tick_step) * tick_step)
+
+    if axis_max <= axis_min:
+        axis_max = axis_min + tick_step
+
+    tick_values = np.arange(axis_min, axis_max + 0.5 * tick_step, tick_step)
+
+    # P1-E.3 · APPROVED IMAGE / IMAGEN APROBADA
+    # Spanish: Se conserva exactamente el PNG aprobado en assets.
+    # English: The exact approved PNG stored in assets is preserved.
+    project_root = Path(__file__).resolve().parents[2]
+    kart_image_path = project_root / "assets" / "ephikart" / "kart_simulation.png"
+
     if not kart_image_path.exists():
         raise FileNotFoundError(
             "No se encontró assets/ephikart/kart_simulation.png"
@@ -476,44 +503,26 @@ def build_kart_visual(
 
     kart_source = _image_file_to_data_uri(kart_image_path)
 
-    # ========================================================
-    # P1-E.2 · VISUAL POSITION / POSICIÓN VISUAL
-    # Spanish: x(t) se normaliza únicamente para ubicar la miniatura
-    #          dentro del escenario. La etiqueta conserva el valor físico real.
-    # English: x(t) is normalized only to place the thumbnail inside the
-    #          stage. The label preserves the actual physical value.
-    # ========================================================
-    position_span = maximum_position - minimum_position
+    # P1-E.3 · PHYSICAL POSITION / POSICIÓN FÍSICA
+    # Spanish: El centro del sprite sigue directamente x(t_obs).
+    # English: The sprite center directly follows x(t_obs).
+    axis_span = axis_max - axis_min
+    kart_width = 0.28 * axis_span
+    kart_left = float(position) - 0.5 * kart_width
 
-    if abs(position_span) < 1e-12:
-        normalized_position = 0.0
-    else:
-        normalized_position = (
-            (position - minimum_position) / position_span
-        )
-
-    normalized_position = max(
-        0.0,
-        min(float(normalized_position), 1.0),
-    )
-
-    # Spanish: La miniatura se desplaza de izquierda a derecha sin salir del marco.
-    # English: The thumbnail moves left-to-right without leaving the frame.
-    kart_width = 34.0
-    kart_height = 20.0
-    left_limit = 3.0
-    right_limit = 97.0 - kart_width
-    kart_x = left_limit + normalized_position * (right_limit - left_limit)
+    # Spanish: Solo se limita el dibujo para evitar que la imagen salga del marco.
+    # English: Drawing is only clamped to keep the image inside the frame.
+    kart_left = max(axis_min, min(kart_left, axis_max - kart_width))
 
     figure.add_layout_image(
         dict(
             source=kart_source,
             xref="x",
             yref="y",
-            x=kart_x,
-            y=24.0,
+            x=kart_left,
+            y=0.84,
             sizex=kart_width,
-            sizey=kart_height,
+            sizey=0.48,
             xanchor="left",
             yanchor="top",
             sizing="contain",
@@ -522,28 +531,37 @@ def build_kart_visual(
         )
     )
 
-    # ========================================================
-    # P1-E.2 · TRACK / PISTA
-    # Spanish: La pista permanece fija; solo se desplaza el carrito.
-    # English: The track remains fixed; only the cart moves.
-    # ========================================================
+    # P1-E.2 · RULER / REGLA
+    # Spanish: La pista funciona ahora como referencia métrica.
+    # English: The track now works as a metric reference.
     figure.add_shape(
         type="line",
-        x0=1.0,
-        x1=99.0,
-        y0=4.0,
-        y1=4.0,
+        x0=axis_min, x1=axis_max,
+        y0=0.20, y1=0.20,
         line={"color": "#8A99A8", "width": 3},
         layer="below",
     )
 
-    # ========================================================
-    # P1-E.2 · INSTANTANEOUS STATE / ESTADO INSTANTÁNEO
-    # Spanish: La imagen muestra el carrito; estas etiquetas indican
-    #          el estado físico calculado en el mismo t_obs.
-    # English: The image shows the cart; these labels indicate the
-    #          physical state calculated at the same t_obs.
-    # ========================================================
+    for tick in tick_values:
+        figure.add_shape(
+            type="line",
+            x0=float(tick), x1=float(tick),
+            y0=0.18, y1=0.24,
+            line={"color": "#627D98", "width": 1.5},
+            layer="below",
+        )
+
+    # Spanish: Marca azul de la posición instantánea.
+    # English: Blue mark for the instantaneous position.
+    figure.add_shape(
+        type="line",
+        x0=float(position), x1=float(position),
+        y0=0.18, y1=0.30,
+        line={"color": INTERACTIVE_BLUE, "width": 3},
+        layer="above",
+    )
+
+    # P1-E.3 · STATE / ESTADO
     if band_active:
         elastic_state = "Ligas actuando · transmisión activa"
     else:
@@ -556,9 +574,11 @@ def build_kart_visual(
     else:
         motion_state = "Carrito detenido"
 
+    center_x = (axis_min + axis_max) / 2.0
+
     figure.add_annotation(
-        x=50,
-        y=28.2,
+        x=center_x,
+        y=0.97,
         text=(
             f"<b>t = {observation_time:.2f} s</b>"
             f" &nbsp;·&nbsp; x = {position:.3f} m"
@@ -568,33 +588,36 @@ def build_kart_visual(
     )
 
     figure.add_annotation(
-        x=50,
-        y=1.3,
+        x=center_x,
+        y=0.02,
         text=f"<b>{motion_state}</b> &nbsp;·&nbsp; {elastic_state}",
         showarrow=False,
         font={"size": 12, "color": TEXT_COLOR},
     )
 
     figure.update_layout(
-        height=360,
-        margin={"l": 5, "r": 5, "t": 15, "b": 15},
+        height=390,
+        margin={"l": 20, "r": 20, "t": 15, "b": 45},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#FFFFFF",
         showlegend=False,
         xaxis={
-            "range": [0, 100],
-            "visible": False,
+            "range": [axis_min, axis_max],
+            "tickmode": "array",
+            "tickvals": [float(v) for v in tick_values],
+            "ticktext": [f"{v:g} m" for v in tick_values],
+            "tickfont": {"size": 11, "color": MUTED_TEXT},
+            "showgrid": False,
+            "zeroline": False,
+            "showline": False,
             "fixedrange": True,
         },
         yaxis={
-            "range": [0, 30],
+            "range": [-0.08, 1.03],
             "visible": False,
             "fixedrange": True,
         },
-        font={
-            "family": "Inter, Segoe UI, Arial",
-            "color": TEXT_COLOR,
-        },
+        font={"family": "Inter, Segoe UI, Arial", "color": TEXT_COLOR},
     )
 
     return figure
