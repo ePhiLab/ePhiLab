@@ -420,14 +420,14 @@ def build_speedometer(
                 "suffix": " m/s",
                 "valueformat": ".2f",
                 "font": {
-                    "size": 42,
+                    "size": 30,
                     "color": ESPOL_BLUE,
                 },
             },
             title={
                 "text": "Velocidad instantánea",
                 "font": {
-                    "size": 18,
+                    "size": 15,
                     "color": ESPOL_BLUE,
                 },
             },
@@ -477,12 +477,16 @@ def build_speedometer(
     )
 
     figure.update_layout(
-        height=325,
+        # Mobile-first: compact gauge so cart + controls + gauge
+        # fit within one smartphone viewport after a short scroll.
+        # Mobile-first: velocímetro compacto para que carrito +
+        # controles + gauge quepan en una pantalla del celular.
+        height=175,
         margin={
-            "l": 30,
-            "r": 30,
-            "t": 60,
-            "b": 10,
+            "l": 18,
+            "r": 18,
+            "t": 38,
+            "b": 0,
         },
         paper_bgcolor="rgba(0,0,0,0)",
         font={
@@ -510,6 +514,7 @@ def build_kart_visual(
     velocity: float,
     band_active: bool,
     observation_time: float,
+    release_time: float | None,
     minimum_position: float,
     maximum_position: float,
 ) -> go.Figure:
@@ -593,9 +598,9 @@ def build_kart_visual(
             xref="x",
             yref="y",
             x=kart_left,
-            y=0.84,
+            y=0.78,
             sizex=kart_width,
-            sizey=0.48,
+            sizey=0.42,
             xanchor="left",
             yanchor="top",
             sizing="contain",
@@ -610,7 +615,7 @@ def build_kart_visual(
     figure.add_shape(
         type="line",
         x0=axis_min, x1=axis_max,
-        y0=0.20, y1=0.20,
+        y0=0.23, y1=0.23,
         line={"color": "#8A99A8", "width": 3},
         layer="below",
     )
@@ -619,7 +624,7 @@ def build_kart_visual(
         figure.add_shape(
             type="line",
             x0=float(tick), x1=float(tick),
-            y0=0.18, y1=0.24,
+            y0=0.20, y1=0.26,
             line={"color": "#627D98", "width": 1.5},
             layer="below",
         )
@@ -629,48 +634,98 @@ def build_kart_visual(
     figure.add_shape(
         type="line",
         x0=float(position), x1=float(position),
-        y0=0.18, y1=0.30,
+        y0=0.20, y1=0.31,
         line={"color": INTERACTIVE_BLUE, "width": 3},
         layer="above",
     )
 
     # P1-E.3 · STATE / ESTADO
-    if band_active:
-        elastic_state = "Ligas actuando · transmisión activa"
-    else:
-        elastic_state = "Ligas liberadas · sin impulso elástico"
+    # MOBILE VISUAL 2 · THREE BAND STATES / TRES ESTADOS DE LA LIGA
+    # Spanish: La liberación se mantiene visible durante una ventana breve
+    #          para que el estudiante pueda identificarla con pasos de 0.02 s.
+    # English: Release remains visible for a brief window so students can
+    #          identify it while stepping through time in 0.02 s increments.
+    release_window = max(0.04, 2.0 * TIME_STEP)
+    is_release_event = (
+        release_time is not None
+        and abs(observation_time - float(release_time)) <= release_window
+    )
 
-    if velocity > 0.01:
-        motion_state = "Movimiento hacia adelante"
-    elif velocity < -0.01:
-        motion_state = "Movimiento hacia atrás"
+    if band_active and not is_release_event:
+        elastic_state = "LIGAS ACTUANDO"
+        elastic_detail = "transmisión elástica activa"
+        band_color = "#F59E0B"       # Amber / Ámbar
+        band_text_color = "#3B2A00"
+    elif is_release_event:
+        elastic_state = "LIGAS SE SUELTAN"
+        elastic_detail = "fin del impulso elástico"
+        band_color = "#22C55E"       # Green / Verde
+        band_text_color = "#063B17"
     else:
-        motion_state = "Carrito detenido"
-
-    center_x = (axis_min + axis_max) / 2.0
+        elastic_state = "MOVIMIENTO LIBRE"
+        elastic_detail = "ligas liberadas · sin impulso elástico"
+        band_color = "#3B82F6"       # Blue / Azul
+        band_text_color = "#FFFFFF"
 
     figure.add_annotation(
         x=center_x,
-        y=0.97,
+        y=0.96,
         text=(
             f"<b>t = {observation_time:.2f} s</b>"
             f" &nbsp;·&nbsp; x = {position:.3f} m"
         ),
         showarrow=False,
-        font={"size": 13, "color": ESPOL_BLUE},
+        font={"size": 11, "color": ESPOL_BLUE},
     )
 
     figure.add_annotation(
         x=center_x,
-        y=0.02,
-        text=f"<b>{motion_state}</b> &nbsp;·&nbsp; {elastic_state}",
+        y=0.08,
+        text=f"<b>{motion_state}</b>",
         showarrow=False,
-        font={"size": 12, "color": TEXT_COLOR},
+        font={"size": 10, "color": TEXT_COLOR},
     )
 
+    figure.add_annotation(
+        x=center_x,
+        y=-0.02,
+        text=f"<b>{elastic_state}</b> · {elastic_detail}",
+        showarrow=False,
+        font={"size": 9, "color": band_text_color},
+        bgcolor=band_color,
+        bordercolor=band_color,
+        borderpad=4,
+        opacity=0.92,
+    )
+
+    # MOBILE VISUAL 2 · RELEASE EVENT MARKER / MARCADOR DEL EVENTO DE LIBERACIÓN
+    # Spanish: Una señal verde sobre el carrito destaca el momento en que
+    #          las ligas dejan de transmitir impulso elástico.
+    # English: A green signal above the cart highlights the instant when
+    #          the bands stop transmitting elastic impulse.
+    if is_release_event:
+        figure.add_annotation(
+            x=position,
+            y=0.58,
+            text="<b>LIBERACIÓN</b>",
+            showarrow=True,
+            arrowhead=2,
+            arrowsize=1,
+            arrowwidth=2,
+            arrowcolor="#22C55E",
+            ax=0,
+            ay=-24,
+            font={"size": 9, "color": "#063B17"},
+            bgcolor="#DCFCE7",
+            bordercolor="#22C55E",
+            borderpad=3,
+        )
+
     figure.update_layout(
-        height=390,
-        margin={"l": 20, "r": 20, "t": 15, "b": 45},
+        # Mobile-first: reduce vertical footprint substantially.
+        # Mobile-first: reduce de forma importante el espacio vertical.
+        height=235,
+        margin={"l": 10, "r": 10, "t": 8, "b": 34},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#FFFFFF",
         showlegend=False,
@@ -679,14 +734,14 @@ def build_kart_visual(
             "tickmode": "array",
             "tickvals": [float(v) for v in tick_values],
             "ticktext": [f"{v:g} m" for v in tick_values],
-            "tickfont": {"size": 11, "color": MUTED_TEXT},
+            "tickfont": {"size": 9, "color": MUTED_TEXT},
             "showgrid": False,
             "zeroline": False,
             "showline": False,
             "fixedrange": True,
         },
         yaxis={
-            "range": [-0.08, 1.03],
+            "range": [-0.10, 1.03],
             "visible": False,
             "fixedrange": True,
         },
@@ -1266,6 +1321,7 @@ def render_prediction(
                 velocity=state["velocity"],
                 band_active=state["band_active"],
                 observation_time=state["time"],
+                release_time=simulation.get("release_time"),
                 minimum_position=float(np.min(simulation["position"])),
                 maximum_position=float(np.max(simulation["position"])),
             ),
@@ -1349,27 +1405,10 @@ def render_prediction(
             },
         )
 
-        if state["velocity"] > 0.01:
-            movement_state = "Movimiento hacia adelante"
-        elif state["velocity"] < -0.01:
-            movement_state = "Movimiento hacia atrás"
-        else:
-            movement_state = "Carrito detenido"
-
-        if state["band_active"]:
-            band_state = "Liga actuando"
-        else:
-            band_state = "Liga suelta"
-
-        st.markdown(
-            f"""
-            <div style="text-align:center; color:#102A43; line-height:1.7;">
-                <strong>{movement_state}</strong><br>
-                <span style="color:#627D98;">{band_state}</span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        # Spanish: El estado de movimiento y de la liga ya aparece dentro
+        #          de la representación compacta del carrito.
+        # English: Motion and band states are already shown inside the
+        #          compact cart representation.
 
 
     # ========================================================
