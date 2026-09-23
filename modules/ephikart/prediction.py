@@ -952,89 +952,14 @@ def render_prediction(
         st.stop()
     
     # ========================================================
-    # P1-A / P1-B · 2. OBSERVATION TIME / TIEMPO DE OBSERVACIÓN
-    # Spanish: El slider general modifica t_obs. Las gráficas,
-    #          métricas, energía y velocímetro leen este mismo valor.
-    # English: The general slider updates t_obs. Charts, metrics,
-    #          energy, and the speedometer read this same value.
+    # P1-E.4 · GLOBAL TIME PREPARATION / PREPARACIÓN DEL TIEMPO GLOBAL
+    # Spanish: t_obs se prepara aquí, pero los controles visibles se
+    #          muestran debajo de la representación del carrito.
+    # English: t_obs is prepared here, while the visible controls are
+    #          rendered below the cart representation.
     # ========================================================
-
-    st.markdown("## 2. Instante de observación")
-
     prepare_observation_time_state(float(duration))
-
-    with st.container(border=True):
-        st.slider(
-            "Desplaza el control para construir la gráfica",
-            min_value=0.0,
-            max_value=float(duration),
-            step=TIME_STEP,
-            key="t_general",
-            on_change=sync_observation_time,
-            args=("t_general", float(duration)),
-            help=(
-                "Control temporal general. Todos los controles de tiempo "
-                "de la actividad representan el mismo instante t_obs."
-            ),
-        )
-
-        # P1-M · DIRECT + STEP CONTROLS / CONTROLES DIRECTOS + PASO
-        # Spanish: Botones para ajuste fino y casilla para entrada exacta.
-        # English: Buttons provide fine adjustment and the field allows exact input.
-        time_minus, time_input, time_plus = st.columns([1, 1.35, 1], gap="small")
-
-        with time_minus:
-            st.button(
-                "−0.02 s",
-                key="time_step_minus",
-                use_container_width=True,
-                on_click=step_observation_time,
-                args=(-TIME_STEP, float(duration)),
-            )
-
-        with time_input:
-            st.number_input(
-                "Tiempo exacto, t (s)",
-                step=TIME_STEP,
-                format="%.2f",
-                key=TIME_INPUT_KEY,
-                on_change=sync_manual_observation_time,
-                args=(float(duration),),
-                help=(
-                    "Ingrese un valor entre 0.00 s y tₘₐₓ. "
-                    "Si está fuera del rango, el tiempo vuelve a 0.00 s."
-                ),
-            )
-
-        with time_plus:
-            st.button(
-                "+0.02 s",
-                key="time_step_plus",
-                use_container_width=True,
-                on_click=step_observation_time,
-                args=(TIME_STEP, float(duration)),
-            )
-
-        observation_time = float(st.session_state["t_obs"])
-
-        st.markdown(
-            f"""
-            <div style="
-                color: #102A43;
-                font-size: 1rem;
-                margin-top: -0.25rem;
-            ">
-                Tiempo global de observación:
-                <strong style="
-                    color: #1677B8;
-                    font-size: 1.35rem;
-                ">
-                    {observation_time:.2f} s
-                </strong>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    observation_time = float(st.session_state["t_obs"])
 
     state = instantaneous_state(
         simulation,
@@ -1151,6 +1076,101 @@ def render_prediction(
                 "displayModeBar": False,
                 "responsive": True,
             },
+        )
+
+    # ========================================================
+    # P1-E.4 · GLOBAL TIME CONTROLS / CONTROLES DE TIEMPO GLOBAL
+    # Spanish: Todos los controles temporales principales quedan debajo
+    #          del carrito y modifican la misma variable global t_obs.
+    # English: All main time controls sit below the cart and update the
+    #          same global t_obs variable.
+    # ========================================================
+    st.slider(
+        "Tiempo de observación global, t (s)",
+        min_value=0.0,
+        max_value=float(duration),
+        step=TIME_STEP,
+        key="t_general",
+        on_change=sync_observation_time,
+        args=("t_general", float(duration)),
+    )
+
+    time_minus, time_input, time_plus = st.columns([1, 1.35, 1], gap="small")
+
+    with time_minus:
+        st.button(
+            "−0.02 s",
+            key="time_step_minus",
+            use_container_width=True,
+            on_click=step_observation_time,
+            args=(-TIME_STEP, float(duration)),
+        )
+
+    with time_input:
+        st.number_input(
+            "Tiempo exacto, t (s)",
+            step=TIME_STEP,
+            format="%.2f",
+            key=TIME_INPUT_KEY,
+            on_change=sync_manual_observation_time,
+            args=(float(duration),),
+            help=(
+                "Ingrese un valor entre 0.00 s y tₘₐₓ. "
+                "Si está fuera del rango, el tiempo vuelve a 0.00 s."
+            ),
+        )
+
+    with time_plus:
+        st.button(
+            "+0.02 s",
+            key="time_step_plus",
+            use_container_width=True,
+            on_click=step_observation_time,
+            args=(TIME_STEP, float(duration)),
+        )
+
+    # ========================================================
+    # P1-E.4 · SPEEDOMETER NEXT TO CART / VELOCÍMETRO JUNTO AL CARRITO
+    # Spanish: El velocímetro queda inmediatamente debajo de los controles
+    #          del carrito para reducir el desplazamiento en smartphone.
+    # English: The speedometer is immediately below the cart controls to
+    #          reduce scrolling distance on smartphones.
+    # ========================================================
+    with st.container(border=True):
+        maximum_speed = float(np.max(np.abs(simulation["velocity"])))
+
+        st.plotly_chart(
+            build_speedometer(
+                velocity=state["velocity"],
+                maximum_speed=maximum_speed,
+            ),
+            use_container_width=True,
+            config={
+                "displayModeBar": False,
+                "responsive": True,
+            },
+        )
+
+        if state["velocity"] > 0.01:
+            movement_state = "Movimiento hacia adelante"
+        elif state["velocity"] < -0.01:
+            movement_state = "Movimiento hacia atrás"
+        else:
+            movement_state = "Carrito detenido"
+
+        if state["band_active"]:
+            band_state = "Liga actuando"
+        else:
+            band_state = "Liga suelta"
+
+        st.markdown(
+            f"""
+            <div style="text-align:center; color:#102A43; line-height:1.7;">
+                <strong>{movement_state}</strong><br>
+                <span style="color:#627D98;">{band_state}</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
 
@@ -1280,67 +1300,9 @@ def render_prediction(
         },
     )
 
-    # ========================================================
-    # P1-C.2 · SPEEDOMETER / VELOCÍMETRO
-    # Spanish: El velocímetro se coloca debajo de las tres gráficas.
-    #          Sigue utilizando el mismo estado instantáneo t_obs.
-    # English: The speedometer is placed below the three charts.
-    #          It continues using the same instantaneous t_obs state.
-    # ========================================================
-
-    with st.container(border=True):
-
-        maximum_speed = float(
-            np.max(np.abs(simulation["velocity"]))
-        )
-
-        st.plotly_chart(
-            build_speedometer(
-                velocity=state["velocity"],
-                maximum_speed=maximum_speed,
-            ),
-            use_container_width=True,
-            config={
-                "displayModeBar": False,
-                "responsive": True,
-            },
-        )
-
-        # ----------------------------------------------------
-        # MOVEMENT STATE / ESTADO DEL MOVIMIENTO
-        # ----------------------------------------------------
-
-        if state["velocity"] > 0.01:
-            movement_state = "Movimiento hacia adelante"
-        elif state["velocity"] < -0.01:
-            movement_state = "Movimiento hacia atrás"
-        else:
-            movement_state = "Carrito detenido"
-
-        # ----------------------------------------------------
-        # ELASTIC BAND STATE / ESTADO DE LA LIGA
-        # ----------------------------------------------------
-
-        if state["band_active"]:
-            band_state = "Liga actuando"
-        else:
-            band_state = "Liga suelta"
-
-        st.markdown(
-            f"""
-            <div style="
-                text-align: center;
-                color: #102A43;
-                line-height: 1.7;
-            ">
-                <strong>{movement_state}</strong><br>
-                <span style="color: #627D98;">
-                    {band_state}
-                </span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    # P1-E.4 · SPEEDOMETER MOVED / VELOCÍMETRO REUBICADO
+    # Spanish: El velocímetro ya fue mostrado junto al carrito.
+    # English: The speedometer was already rendered next to the cart.
 
 
     ## ******************************************************
