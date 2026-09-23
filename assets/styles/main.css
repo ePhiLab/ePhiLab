@@ -482,3 +482,41 @@ html, body, [class*="css"] {
     }
 
 }
+
+
+/* =========================================================
+   P1-M · MOBILE PHYSICS CONTROLS / CONTROLES FÍSICOS MÓVILES
+   Spanish: Amplía el área táctil de sliders y campos numéricos.
+   English: Enlarges the touch area of sliders and numeric inputs.
+   ========================================================= */
+
+@media (max-width: 767px) {
+    /* Spanish: Reserva una zona táctil vertical más cómoda alrededor del slider.
+       English: Provides a larger vertical touch zone around each slider. */
+    [data-testid="stSlider"] {
+        padding-top: 0.35rem !important;
+        padding-bottom: 0.65rem !important;
+    }
+
+    [data-testid="stSlider"] [data-baseweb="slider"] {
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    [data-testid="stSlider"] [role="slider"] {
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    /* Spanish: Botones e input temporal con altura cómoda para el pulgar.
+       English: Time buttons and numeric input use thumb-friendly height. */
+    .stButton > button {
+        min-height: 46px !important;
+    }
+
+    [data-testid="stNumberInput"] input {
+        min-height: 46px !important;
+        font-size: 16px !important;
+    }
+}
