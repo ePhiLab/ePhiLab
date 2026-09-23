@@ -530,6 +530,18 @@ def build_kart_visual(
     # English: The sprite horizontal center coincides with x(t_obs).
     center_x = float(position)
 
+    # HOTFIX 2 · MOTION STATE / ESTADO DE MOVIMIENTO
+    # Spanish: Se determina con la velocidad instantánea y se mantiene
+    #          independiente del estado mecánico de las ligas.
+    # English: It is determined from instantaneous velocity and remains
+    #          independent from the mechanical state of the bands.
+    if velocity > 0.01:
+        motion_state = "Movimiento hacia adelante"
+    elif velocity < -0.01:
+        motion_state = "Movimiento hacia atrás"
+    else:
+        motion_state = "Carrito detenido"
+
 
     figure = go.Figure()
 
