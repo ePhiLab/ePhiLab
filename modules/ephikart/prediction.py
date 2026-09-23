@@ -525,6 +525,12 @@ def build_kart_visual(
              The ruler uses the full trajectory and the cart is placed from x(t_obs).
     """
 
+    # HOTFIX · CART CENTER / CENTRO DEL CARRITO
+    # Spanish: La coordenada horizontal central del sprite coincide con x(t_obs).
+    # English: The sprite horizontal center coincides with x(t_obs).
+    center_x = float(position)
+
+
     figure = go.Figure()
 
     # P1-E.2 · FIXED DYNAMIC SCALE / ESCALA DINÁMICA FIJA
