@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import base64
+from io import BytesIO
 from pathlib import Path
 
 import numpy as np
 import plotly.graph_objects as go
+import plotly.io as pio
 import streamlit as st
 
 from components.footer import render_footer
@@ -795,6 +797,200 @@ def build_energy_chart(
 
     return figure
     
+
+def build_prediction_pdf(
+    *,
+    parameters: ElasticKartParameters,
+    simulation: dict,
+    state: dict,
+    position_figure: go.Figure,
+    velocity_figure: go.Figure,
+    acceleration_figure: go.Figure,
+    energy_figure: go.Figure,
+) -> bytes:
+    """
+    Spanish: Genera un PDF de la predicción hasta el instante t_obs fijado
+             por el estudiante e incorpora las gráficas visibles en ese instante.
+    English: Generates a prediction PDF up to the student's fixed t_obs and
+             includes the charts visible at that instant.
+    """
+
+    # Local import keeps PDF dependencies isolated from the simulation core.
+    # La importación local mantiene las dependencias PDF aisladas del núcleo.
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import (
+        Image,
+        KeepTogether,
+        PageBreak,
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
+    )
+
+    buffer = BytesIO()
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=1.35 * cm,
+        leftMargin=1.35 * cm,
+        topMargin=1.25 * cm,
+        bottomMargin=1.25 * cm,
+        title="ePhiKart - Predicción",
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "ePhiKartTitle",
+        parent=styles["Title"],
+        textColor=colors.HexColor("#001C43"),
+        fontSize=20,
+        leading=24,
+        spaceAfter=8,
+    )
+    section_style = ParagraphStyle(
+        "ePhiKartSection",
+        parent=styles["Heading2"],
+        textColor=colors.HexColor("#001C43"),
+        fontSize=13,
+        leading=16,
+        spaceBefore=8,
+        spaceAfter=6,
+    )
+    centered_style = ParagraphStyle(
+        "Centered",
+        parent=styles["BodyText"],
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#102A43"),
+        fontSize=9,
+    )
+
+    story = [
+        Paragraph("e(Phi)Kart - Documento de predicción", title_style),
+        Paragraph(
+            f"Estado registrado en <b>t = {state['time']:.2f} s</b>. "
+            "Las gráficas corresponden al instante de observación fijado por el estudiante.",
+            styles["BodyText"],
+        ),
+        Spacer(1, 0.25 * cm),
+        Paragraph("Parámetros de simulación", section_style),
+    ]
+
+    parameter_rows = [
+        ["Magnitud", "Valor", "Magnitud", "Valor"],
+        ["Posición inicial", f"{parameters.initial_position:.3f} m",
+         "Velocidad inicial", f"{parameters.initial_velocity:.3f} m/s"],
+        ["Longitud natural L0", f"{parameters.natural_length:.3f} m",
+         "Longitud inicial Li", f"{parameters.initial_length:.3f} m"],
+        ["Constante elástica k", f"{parameters.spring_constant:.2f} N/m",
+         "Masa", f"{parameters.mass:.3f} kg"],
+        ["Coeficiente de fricción", f"{parameters.friction_coefficient:.2f}",
+         "Tiempo máximo", f"{parameters.duration:.2f} s"],
+    ]
+    parameter_table = Table(parameter_rows, colWidths=[4.1*cm, 2.6*cm, 4.1*cm, 2.6*cm])
+    parameter_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#001C43")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#B8C4D0")),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F7FAFC")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    story += [parameter_table, Spacer(1, 0.25 * cm)]
+
+    story.append(Paragraph("Estado instantáneo", section_style))
+    state_rows = [
+        ["Posición", "Velocidad", "Aceleración", "F. elástica", "F. fricción"],
+        [
+            f"{state['position']:.3f} m",
+            f"{state['velocity']:.3f} m/s",
+            f"{state['acceleration']:.3f} m/s²",
+            f"{state['elastic_force']:.3f} N",
+            f"{state['friction_force']:.3f} N",
+        ],
+    ]
+    state_table = Table(state_rows, colWidths=[3.0*cm]*5)
+    state_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EAF6FC")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#001C43")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#B8C4D0")),
+        ("FONTSIZE", (0, 0), (-1, -1), 8.3),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    story += [state_table, Spacer(1, 0.25 * cm)]
+
+    # Spanish: Plotly exporta exactamente las figuras que ya se muestran.
+    # English: Plotly exports the exact figures already shown on screen.
+    figures = [
+        ("Posición vs. tiempo", position_figure),
+        ("Velocidad vs. tiempo", velocity_figure),
+        ("Aceleración vs. tiempo", acceleration_figure),
+        ("Balance energético", energy_figure),
+    ]
+
+    for index, (caption, figure) in enumerate(figures):
+        if index == 2:
+            story.append(PageBreak())
+
+        image_bytes = pio.to_image(
+            figure,
+            format="png",
+            width=1000,
+            height=520,
+            scale=1.35,
+        )
+        image_stream = BytesIO(image_bytes)
+        story.append(
+            KeepTogether([
+                Paragraph(caption, section_style),
+                Image(image_stream, width=17.0*cm, height=8.84*cm),
+                Paragraph(
+                    f"Captura correspondiente a t = {state['time']:.2f} s",
+                    centered_style,
+                ),
+                Spacer(1, 0.15*cm),
+            ])
+        )
+
+    story.append(Paragraph("Energía en el instante seleccionado", section_style))
+    energy_rows = [
+        ["Cinética", "Elástica", "Trabajo de fricción", "Mecánica"],
+        [
+            f"{state['kinetic_energy']:.3f} J",
+            f"{state['elastic_energy']:.3f} J",
+            f"{state['friction_work']:.3f} J",
+            f"{state['mechanical_energy']:.3f} J",
+        ],
+    ]
+    energy_table = Table(energy_rows, colWidths=[3.75*cm]*4)
+    energy_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EAF6FC")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#B8C4D0")),
+        ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    story.append(energy_table)
+
+    document.build(story)
+    return buffer.getvalue()
+
+
 def render_prediction(
     show_header: bool = True,
     show_footer: bool = True,
