@@ -47,6 +47,12 @@ TIME_SLIDER_KEYS = (
     "t_a",
 )
 
+# P1-M · FINE TIME CONTROL / CONTROL TEMPORAL FINO
+# Spanish: Todos los controles temporales usan la misma resolución.
+# English: All temporal controls use the same resolution.
+TIME_STEP = 0.02
+TIME_INPUT_KEY = "t_manual"
+
 
 def clamp_observation_time(
     value: float,
@@ -78,6 +84,10 @@ def prepare_observation_time_state(duration: float) -> None:
     for slider_key in TIME_SLIDER_KEYS:
         st.session_state[slider_key] = current_time
 
+    # Spanish: La casilla numérica refleja el mismo t_obs.
+    # English: The numeric input mirrors the same t_obs.
+    st.session_state[TIME_INPUT_KEY] = current_time
+
 
 def sync_observation_time(
     source_key: str,
@@ -100,6 +110,64 @@ def sync_observation_time(
     for slider_key in TIME_SLIDER_KEYS:
         st.session_state[slider_key] = new_time
 
+    st.session_state[TIME_INPUT_KEY] = new_time
+
+
+def sync_manual_observation_time(duration: float) -> None:
+    """
+    Spanish: Valida el tiempo escrito manualmente. Si está fuera del
+             intervalo [0, t_max], reinicia t_obs a 0.0 s.
+    English: Validates manually entered time. If it is outside the
+             [0, t_max] interval, t_obs resets to 0.0 s.
+    """
+
+    requested_time = float(st.session_state.get(TIME_INPUT_KEY, 0.0))
+    new_time = requested_time if 0.0 <= requested_time <= duration else 0.0
+
+    st.session_state["t_obs"] = new_time
+    st.session_state[TIME_INPUT_KEY] = new_time
+    for slider_key in TIME_SLIDER_KEYS:
+        st.session_state[slider_key] = new_time
+
+
+def step_observation_time(delta: float, duration: float) -> None:
+    """
+    Spanish: Avanza o retrocede t_obs un paso, respetando los límites.
+    English: Moves t_obs one step forward or backward within the limits.
+    """
+
+    current_time = float(st.session_state.get("t_obs", 0.0))
+    new_time = clamp_observation_time(current_time + delta, duration)
+    # Spanish: Redondear evita residuos binarios como 2.1000000001.
+    # English: Rounding avoids binary residues such as 2.1000000001.
+    new_time = round(new_time, 2)
+
+    st.session_state["t_obs"] = new_time
+    st.session_state[TIME_INPUT_KEY] = new_time
+    for slider_key in TIME_SLIDER_KEYS:
+        st.session_state[slider_key] = new_time
+
+
+def normalize_physical_control_state() -> None:
+    """
+    Spanish: Corrige valores guardados por versiones anteriores para que
+             los nuevos rangos físicos no bloqueen los sliders.
+    English: Corrects values saved by earlier versions so the new physical
+             ranges cannot leave sliders in an invalid state.
+    """
+
+    limits = {
+        "kart_natural_length": (0.07, 0.10, 0.085),
+        "kart_initial_length": (0.101, 0.20, 0.15),
+        "kart_spring_constant": (5.0, 20.0, 10.0),
+        "kart_duration": (1.0, 5.0, 4.0),
+    }
+
+    for key, (minimum, maximum, default) in limits.items():
+        if key in st.session_state:
+            value = float(st.session_state[key])
+            if not minimum <= value <= maximum:
+                st.session_state[key] = default
 
 
 def reset_prediction() -> None:
@@ -129,6 +197,7 @@ def reset_prediction() -> None:
         "t_x",
         "t_v",
         "t_a",
+        "t_manual",
     ]
 
     for key in keys_to_remove:
@@ -765,6 +834,11 @@ def render_prediction(
         )
     
     
+    # P1-M · PHYSICAL RANGES / RANGOS FÍSICOS
+    # Spanish: Normaliza estados antiguos antes de crear los widgets.
+    # English: Normalize legacy state before creating the widgets.
+    normalize_physical_control_state()
+
     with st.container(border=True):
         left_column, right_column = st.columns(2, gap="large")
     
@@ -791,10 +865,10 @@ def render_prediction(
     
             natural_length = st.slider(
                 "Longitud natural de la liga, L₀ (m)",
-                min_value=0.05,
-                max_value=1.0,
-                value=0.20,
-                step=0.01,
+                min_value=0.07,
+                max_value=0.10,
+                value=0.085,
+                step=0.005,
                 key="kart_natural_length",
                 help=(
                     "Longitud de la liga cuando no se encuentra "
@@ -804,10 +878,10 @@ def render_prediction(
     
             initial_length = st.slider(
                 "Longitud estirada inicial, Lᵢ (m)",
-                min_value=float(natural_length),
-                max_value=2.0,
-                value=max(0.50, float(natural_length)),
-                step=0.01,
+                min_value=0.101,
+                max_value=0.200,
+                value=0.150,
+                step=0.001,
                 key="kart_initial_length",
                 help=(
                     "Longitud inicial de la liga antes de soltar "
@@ -818,9 +892,9 @@ def render_prediction(
         with right_column:
             spring_constant = st.slider(
                 "Constante elástica de la liga, k (N/m)",
-                min_value=1.0,
-                max_value=50.0,
-                value=15.0,
+                min_value=5.0,
+                max_value=20.0,
+                value=10.0,
                 step=0.5,
                 key="kart_spring_constant",
                 help="Rigidez efectiva de la liga.",
@@ -852,8 +926,8 @@ def render_prediction(
             duration = st.slider(
                 "Duración máxima de la simulación, tₘₐₓ (s)",
                 min_value=1.0,
-                max_value=20.0,
-                value=10.0,
+                max_value=5.0,
+                value=4.0,
                 step=0.5,
                 key="kart_duration",
                 help="Tiempo máximo que se mostrará en las gráficas.",
@@ -894,7 +968,7 @@ def render_prediction(
             "Desplaza el control para construir la gráfica",
             min_value=0.0,
             max_value=float(duration),
-            step=0.02,
+            step=TIME_STEP,
             key="t_general",
             on_change=sync_observation_time,
             args=("t_general", float(duration)),
@@ -903,6 +977,43 @@ def render_prediction(
                 "de la actividad representan el mismo instante t_obs."
             ),
         )
+
+        # P1-M · DIRECT + STEP CONTROLS / CONTROLES DIRECTOS + PASO
+        # Spanish: Botones para ajuste fino y casilla para entrada exacta.
+        # English: Buttons provide fine adjustment and the field allows exact input.
+        time_minus, time_input, time_plus = st.columns([1, 1.35, 1], gap="small")
+
+        with time_minus:
+            st.button(
+                "−0.02 s",
+                key="time_step_minus",
+                use_container_width=True,
+                on_click=step_observation_time,
+                args=(-TIME_STEP, float(duration)),
+            )
+
+        with time_input:
+            st.number_input(
+                "Tiempo exacto, t (s)",
+                step=TIME_STEP,
+                format="%.2f",
+                key=TIME_INPUT_KEY,
+                on_change=sync_manual_observation_time,
+                args=(float(duration),),
+                help=(
+                    "Ingrese un valor entre 0.00 s y tₘₐₓ. "
+                    "Si está fuera del rango, el tiempo vuelve a 0.00 s."
+                ),
+            )
+
+        with time_plus:
+            st.button(
+                "+0.02 s",
+                key="time_step_plus",
+                use_container_width=True,
+                on_click=step_observation_time,
+                args=(TIME_STEP, float(duration)),
+            )
 
         observation_time = float(st.session_state["t_obs"])
 
@@ -1062,7 +1173,7 @@ def render_prediction(
         "Tiempo de observación para x(t), t (s)",
         min_value=0.0,
         max_value=float(duration),
-        step=0.02,
+        step=TIME_STEP,
         key="t_x",
         on_change=sync_observation_time,
         args=("t_x", float(duration)),
@@ -1084,6 +1195,7 @@ def render_prediction(
         position_figure,
         use_container_width=True,
         config={
+            "displayModeBar": False,
             "displaylogo": False,
             "responsive": True,
         },
@@ -1097,7 +1209,7 @@ def render_prediction(
         "Tiempo de observación para v(t), t (s)",
         min_value=0.0,
         max_value=float(duration),
-        step=0.02,
+        step=TIME_STEP,
         key="t_v",
         on_change=sync_observation_time,
         args=("t_v", float(duration)),
@@ -1119,6 +1231,7 @@ def render_prediction(
         velocity_figure,
         use_container_width=True,
         config={
+            "displayModeBar": False,
             "displaylogo": False,
             "responsive": True,
         },
@@ -1139,7 +1252,7 @@ def render_prediction(
         "Tiempo de observación para a(t), t (s)",
         min_value=0.0,
         max_value=float(duration),
-        step=0.02,
+        step=TIME_STEP,
         key="t_a",
         on_change=sync_observation_time,
         args=("t_a", float(duration)),
@@ -1161,6 +1274,7 @@ def render_prediction(
         acceleration_figure,
         use_container_width=True,
         config={
+            "displayModeBar": False,
             "displaylogo": False,
             "responsive": True,
         },
