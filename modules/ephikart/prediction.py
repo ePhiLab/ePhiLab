@@ -697,16 +697,25 @@ def build_kart_visual(
     )
 
     figure.add_annotation(
-        x=center_x,
+        # Spanish: Coordenadas "paper" mantienen la etiqueta fija al centro.
+        # English: "paper" coordinates keep the label fixed at center.
+        x=0.5,
+        xref="paper",
         y=0.08,
+        yref="paper",
         text=f"<b>{motion_state}</b>",
         showarrow=False,
         font={"size": 10, "color": TEXT_COLOR},
+        xanchor="center",
     )
 
     figure.add_annotation(
-        x=center_x,
+        # Spanish: El estado de la liga permanece fijo y centrado.
+        # English: Band status remains fixed and centered.
+        x=0.5,
+        xref="paper",
         y=-0.02,
+        yref="paper",
         text=f"<b>{elastic_state}</b> · {elastic_detail}",
         showarrow=False,
         font={"size": 9, "color": band_text_color},
@@ -714,6 +723,7 @@ def build_kart_visual(
         bordercolor=band_color,
         borderpad=4,
         opacity=0.92,
+        xanchor="center",
     )
 
     # MOBILE VISUAL 2 · RELEASE EVENT MARKER / MARCADOR DEL EVENTO DE LIBERACIÓN
