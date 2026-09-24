@@ -1650,6 +1650,11 @@ def render_prediction(
             energy_figure,
             use_container_width=True,
             config={
+                # Spanish: El balance energético es una visualización de lectura;
+                #          se oculta completamente la barra flotante de Plotly.
+                # English: The energy balance is a read-only visualization;
+                #          Plotly's floating modebar is completely hidden.
+                "displayModeBar": False,
                 "displaylogo": False,
                 "responsive": True,
             },
