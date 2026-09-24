@@ -367,25 +367,6 @@ def build_progressive_chart(
             line_color="#64748B",
         )
 
-        figure.add_annotation(
-            x=release_time,
-            y=0.94,
-            yref="paper",
-            text=(
-                "La liga se suelta"
-                f"<br>t = {release_time:.2f} s"
-            ),
-            showarrow=False,
-            bgcolor="#FFFFFF",
-            bordercolor="#B8C4D0",
-            borderwidth=1,
-            borderpad=5,
-            font={
-                "color": TEXT_COLOR,
-                "size": 11,
-            },
-        )
-
     figure.update_layout(
         # CV2 · The section title is rendered by Streamlit above the slider.
         # CV2 · El título de sección se renderiza con Streamlit sobre el slider.
