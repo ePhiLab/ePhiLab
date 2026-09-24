@@ -263,30 +263,53 @@ def build_progressive_chart(
 
 
     
-    # Parte ya recorrida de la curva.
-    figure.add_trace(
-        go.Scatter(
-            x=visible_time,
-            y=visible_values,
-            mode="lines",
-            name=line_name,
-            line={
-                "color": line_color,
-                "width": 4,
-            },
-            fill="tozeroy" if title == "Velocidad vs. tiempo" else None,
-            fillcolor=(
-                "rgba(22, 119, 184, 0.10)"
-                if title == "Velocidad vs. tiempo"
-                else None
-            ),
-            hovertemplate=(
-                "t = %{x:.2f} s"
-                f"<br>{y_title} = %{{y:.3f}}"
-                "<extra></extra>"
-            ),
+    # ========================================================
+    # CV2 · TWO PHYSICAL REGIMES / DOS REGÍMENES FÍSICOS
+    # Spanish: La trayectoria observada cambia de color al liberarse
+    #          las ligas. Ámbar = impulso elástico; color de la variable
+    #          = movimiento posterior a la liberación.
+    # English: The observed trajectory changes color when the bands
+    #          release. Amber = elastic drive; variable color = motion
+    #          after release.
+    # ========================================================
+    elastic_color = "#F59E0B"
+
+    if release_time is not None and observation_time >= release_time:
+        before_mask = visible_time <= release_time
+        after_mask = visible_time >= release_time
+
+        figure.add_trace(
+            go.Scatter(
+                x=visible_time[before_mask],
+                y=visible_values[before_mask],
+                mode="lines",
+                name="Ligas actuando",
+                line={"color": elastic_color, "width": 4},
+                hoverinfo="skip",
+            )
         )
-    )
+
+        figure.add_trace(
+            go.Scatter(
+                x=visible_time[after_mask],
+                y=visible_values[after_mask],
+                mode="lines",
+                name=line_name,
+                line={"color": line_color, "width": 4},
+                hoverinfo="skip",
+            )
+        )
+    else:
+        figure.add_trace(
+            go.Scatter(
+                x=visible_time,
+                y=visible_values,
+                mode="lines",
+                name="Ligas actuando",
+                line={"color": elastic_color, "width": 4},
+                hoverinfo="skip",
+            )
+        )
 
     # Punto del instante actual.
     figure.add_trace(
@@ -333,12 +356,15 @@ def build_progressive_chart(
         },
     )
 
-    if release_time is not None:
+    # CV2 · RELEASE MARKER WITHOUT INTERNAL LABEL / MARCADOR SIN LETRERO INTERNO
+    # Spanish: La línea aparece solo después de observar la liberación.
+    # English: The line appears only after the release has been observed.
+    if release_time is not None and observation_time >= release_time:
         figure.add_vline(
             x=release_time,
             line_width=1.2,
             line_dash="dash",
-            line_color="#303030",
+            line_color="#64748B",
         )
 
         figure.add_annotation(
@@ -361,20 +387,14 @@ def build_progressive_chart(
         )
 
     figure.update_layout(
-        title={
-            "text": title,
-            "x": 0.02,
-            "xanchor": "left",
-            "font": {
-                "size": 17,
-                "color": ESPOL_BLUE,
-            },
-        },
-        height=410,
+        # CV2 · The section title is rendered by Streamlit above the slider.
+        # CV2 · El título de sección se renderiza con Streamlit sobre el slider.
+        title=None,
+        height=330,
         margin={
             "l": 15,
             "r": 15,
-            "t": 55,
+            "t": 18,
             "b": 45,
         },
         paper_bgcolor="rgba(0,0,0,0)",
@@ -1454,6 +1474,22 @@ def render_prediction(
     # POSITION x(t) / POSICIÓN x(t)
     # --------------------------------------------------------
 
+    # CV2 · TITLE BEFORE CONTROL / TÍTULO ANTES DEL CONTROL
+    # Spanish: El título identifica primero la sección; el slider queda
+    #          visualmente asociado con la gráfica que controla.
+    # English: The title identifies the section first; the slider is
+    #          visually associated with the chart it controls.
+    st.markdown("### Posición vs. tiempo")
+
+    if release_time is not None:
+        if state["time"] >= release_time:
+            st.caption(
+                f"🟠 Ligas actuando hasta t = {release_time:.2f} s  ·  "
+                "🔵 Cambio de régimen después de la liberación"
+            )
+        else:
+            st.caption("🟠 Ligas actuando · la liberación aún no ha sido observada")
+
     st.slider(
         "Tiempo de observación para x(t), t (s)",
         min_value=0.0,
@@ -1480,6 +1516,10 @@ def render_prediction(
         position_figure,
         use_container_width=True,
         config={
+            # CV2 · STATIC TOUCH-SAFE CHART / GRÁFICA ESTÁTICA SEGURA AL TACTO
+            # Spanish: Evita zoom, paneo o selección accidental al hacer scroll.
+            # English: Prevents accidental zoom, pan, or selection while scrolling.
+            "staticPlot": True,
             "displayModeBar": False,
             "displaylogo": False,
             "responsive": True,
@@ -1489,6 +1529,22 @@ def render_prediction(
     # --------------------------------------------------------
     # VELOCITY v(t) / VELOCIDAD v(t)
     # --------------------------------------------------------
+
+    # CV2 · TITLE BEFORE CONTROL / TÍTULO ANTES DEL CONTROL
+    # Spanish: El título identifica primero la sección; el slider queda
+    #          visualmente asociado con la gráfica que controla.
+    # English: The title identifies the section first; the slider is
+    #          visually associated with the chart it controls.
+    st.markdown("### Velocidad vs. tiempo")
+
+    if release_time is not None:
+        if state["time"] >= release_time:
+            st.caption(
+                f"🟠 Ligas actuando hasta t = {release_time:.2f} s  ·  "
+                "🔵 Cambio de régimen después de la liberación"
+            )
+        else:
+            st.caption("🟠 Ligas actuando · la liberación aún no ha sido observada")
 
     st.slider(
         "Tiempo de observación para v(t), t (s)",
@@ -1516,6 +1572,10 @@ def render_prediction(
         velocity_figure,
         use_container_width=True,
         config={
+            # CV2 · STATIC TOUCH-SAFE CHART / GRÁFICA ESTÁTICA SEGURA AL TACTO
+            # Spanish: Evita zoom, paneo o selección accidental al hacer scroll.
+            # English: Prevents accidental zoom, pan, or selection while scrolling.
+            "staticPlot": True,
             "displayModeBar": False,
             "displaylogo": False,
             "responsive": True,
@@ -1532,6 +1592,22 @@ def render_prediction(
     # --------------------------------------------------------
     # ACCELERATION a(t) / ACELERACIÓN a(t)
     # --------------------------------------------------------
+
+    # CV2 · TITLE BEFORE CONTROL / TÍTULO ANTES DEL CONTROL
+    # Spanish: El título identifica primero la sección; el slider queda
+    #          visualmente asociado con la gráfica que controla.
+    # English: The title identifies the section first; the slider is
+    #          visually associated with the chart it controls.
+    st.markdown("### Aceleración vs. tiempo")
+
+    if release_time is not None:
+        if state["time"] >= release_time:
+            st.caption(
+                f"🟠 Ligas actuando hasta t = {release_time:.2f} s  ·  "
+                "🔵 Cambio de régimen después de la liberación"
+            )
+        else:
+            st.caption("🟠 Ligas actuando · la liberación aún no ha sido observada")
 
     st.slider(
         "Tiempo de observación para a(t), t (s)",
@@ -1559,6 +1635,10 @@ def render_prediction(
         acceleration_figure,
         use_container_width=True,
         config={
+            # CV2 · STATIC TOUCH-SAFE CHART / GRÁFICA ESTÁTICA SEGURA AL TACTO
+            # Spanish: Evita zoom, paneo o selección accidental al hacer scroll.
+            # English: Prevents accidental zoom, pan, or selection while scrolling.
+            "staticPlot": True,
             "displayModeBar": False,
             "displaylogo": False,
             "responsive": True,
