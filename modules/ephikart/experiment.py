@@ -158,7 +158,28 @@ def render_experiment(
     errors = _validate_setup()
     for error in errors:
         st.error(error)
+    # ES: Mantener el texto blanco en el botón principal de guardado.
+    # EN: Keep white text on the main save button.
+    st.markdown(
+        """
+        <style>
+        div.stButton > button[kind="primary"],
+        div.stButton > button[data-testid="stBaseButton-primary"] {
+            color: #FFFFFF !important;
+        }
 
+        div.stButton > button[kind="primary"] p,
+        div.stButton > button[data-testid="stBaseButton-primary"] p {
+            color: #FFFFFF !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+
+    
     # ES: Se guardan los datos solamente después de la validación.
     # EN: Data are confirmed only after validation.
     st.button(
