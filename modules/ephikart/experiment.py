@@ -1,74 +1,10 @@
-"""ePhiKart — experimental setup / preparación experimental."""
-
-from __future__ import annotations
-
-from datetime import datetime
-
-import streamlit as st
-
-from components.footer import render_footer
-from components.header import render_header
-from components.top_navigation import render_top_navigation
-
-
-# ES: Claves persistentes para la preparación experimental.
-# EN: Persistent keys for the experimental setup.
-EXPERIMENT_DEFAULTS = {
-    "exp_group": "",
-    "exp_trial": 1,
-    "exp_mass_g": 250.0,
-    "exp_natural_cm": 8.5,
-    "exp_stretched_cm": 15.0,
-    "exp_initial_x_cm": 0.0,
-    "exp_surface": "Superficie horizontal lisa",
-    "exp_release_method": "Liberación manual, sin empuje adicional",
-    "exp_measurement_method": "Medición directa",
-    "exp_notes": "",
-    "exp_prepared": False,
-    "exp_saved_snapshot": None,
-}
-
-
-def _initialize_experiment_state() -> None:
-    """ES: Inicializa sin borrar respuestas. EN: Initialize without clearing answers."""
-    for key, value in EXPERIMENT_DEFAULTS.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
-
-
-def _invalidate_preparation() -> None:
-    """ES: Un cambio invalida la confirmación anterior. EN: Edits invalidate confirmation."""
-    st.session_state["exp_prepared"] = False
-
-
-def _validate_setup() -> list[str]:
-    """ES: Verifica coherencia física. EN: Check physical consistency."""
-    errors = []
-    if st.session_state["exp_stretched_cm"] <= st.session_state["exp_natural_cm"]:
-        errors.append("La longitud estirada debe ser mayor que la longitud natural.")
-    if st.session_state["exp_mass_g"] <= 0:
-        errors.append("La masa debe ser mayor que cero.")
-    return errors
-
-
-def _save_setup() -> None:
-    """ES: Congela una copia del registro. EN: Freeze a snapshot of the setup."""
-    errors = _validate_setup()
-    if errors:
-        st.session_state["exp_prepared"] = False
-        return
-    keys = (
-        "exp_group", "exp_trial", "exp_mass_g", "exp_natural_cm",
-        "exp_stretched_cm", "exp_initial_x_cm", "exp_surface",
-        "exp_release_method", "exp_measurement_method", "exp_notes",
     )
-    st.session_state["exp_saved_snapshot"] = {
-        key: st.session_state[key] for key in keys
-    }
-    st.session_state["exp_saved_snapshot"]["recorded_at"] = (
-        datetime.now().astimezone().isoformat(timespec="seconds")
-    )
-    st.session_state["exp_prepared"] = True
+    if st.session_state["exp_measurement_saved"]:
+        st.success("Mediciones guardadas en esta sesión.")
+        st.caption(
+            "Se conserva una copia vinculada a las condiciones guardadas. "
+            "P3 permitirá incorporar y analizar el archivo CSV de FizziQ."
+        )
 
 
 def render_experiment(
@@ -158,28 +94,7 @@ def render_experiment(
     errors = _validate_setup()
     for error in errors:
         st.error(error)
-    # ES: Mantener el texto blanco en el botón principal de guardado.
-    # EN: Keep white text on the main save button.
-    st.markdown(
-        """
-        <style>
-        div.stButton > button[kind="primary"],
-        div.stButton > button[data-testid="stBaseButton-primary"] {
-            color: #FFFFFF !important;
-        }
 
-        div.stButton > button[kind="primary"] p,
-        div.stButton > button[data-testid="stBaseButton-primary"] p {
-            color: #FFFFFF !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-
-    
     # ES: Se guardan los datos solamente después de la validación.
     # EN: Data are confirmed only after validation.
     st.button(
@@ -201,8 +116,9 @@ def render_experiment(
     else:
         st.info("Completa y guarda las condiciones antes de continuar con las mediciones.")
 
-    st.markdown("### 2. Ejecución y mediciones")
-    st.caption("P2-C: registro de observaciones y mediciones — siguiente etapa.")
+    # ES: Registro P2-C, vinculado al montaje previamente confirmado.
+    # EN: P2-C recording, linked to the previously confirmed setup.
+    _render_measurements()
 
     if show_footer:
         render_footer()
@@ -210,5 +126,3 @@ def render_experiment(
 
 if __name__ == "__main__":
     render_experiment(
-        show_header=True, show_footer=True, show_top_navigation=True,
-    )
