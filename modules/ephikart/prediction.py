@@ -1301,7 +1301,7 @@ def render_prediction(
     # KINEMATICS / CINEMÁTICA
     # --------------------------------------------------------
 
-    st.markdown("#### 1.2.A. Variables Cinemáticas")
+    st.markdown("### 1.2.A. Variables Cinemáticas")
 
     motion_columns = st.columns(3, gap="medium")
 
@@ -1327,7 +1327,7 @@ def render_prediction(
     # DYNAMICS / DINÁMICA
     # --------------------------------------------------------
 
-    st.markdown("#### 1.2.B. Fuerzas")
+    st.markdown("### 1.2.B. Fuerzas")
 
     force_columns = st.columns(2, gap="medium")
 
@@ -1350,7 +1350,9 @@ def render_prediction(
     #          communicates the physical state corresponding to t_obs.
     # ========================================================
 
-    st.markdown("#### 1.3. Gráficas del sistema")
+    # ES: 1.1, 1.2, 1.3 y 1.4 comparten nivel H2.
+    # EN: 1.1, 1.2, 1.3 and 1.4 share heading level H2.
+    st.markdown("## 1.3. Gráficas del sistema")
 
     with st.container(border=True):
         st.plotly_chart(
