@@ -1111,11 +1111,11 @@ def render_prediction(
     title_column, reset_column = st.columns([6, 1])
 
     ##*****************************
-    # 1. configura el movimiento
+    # 1.1. configura el movimiento
     ##**************************
     
     with title_column:
-        st.markdown("## 1. Configura el movimiento")
+        st.markdown("## 1.1. Configura el movimiento")
     
     with reset_column:
         st.button(
@@ -1269,7 +1269,7 @@ def render_prediction(
     #          followed by the forces acting on the cart.
     # ========================================================
 
-    st.markdown("## 3. Estado instantáneo")
+    st.markdown("## 1.2. Estado instantáneo")
 
     # --------------------------------------------------------
     # OBSERVATION TIME / TIEMPO DE OBSERVACIÓN
@@ -1285,7 +1285,7 @@ def render_prediction(
             margin-top: -0.35rem;
             margin-bottom: 0.85rem;
         ">
-            Estado del sistema en
+            Variables físicas instantáneas del sistema en
             <strong style="
                 color: #1677B8;
                 font-size: 1.05rem;
@@ -1301,7 +1301,7 @@ def render_prediction(
     # KINEMATICS / CINEMÁTICA
     # --------------------------------------------------------
 
-    st.markdown("#### Movimiento")
+    st.markdown("#### 2.1. Variables Cinemáticas")
 
     motion_columns = st.columns(3, gap="medium")
 
@@ -1327,7 +1327,7 @@ def render_prediction(
     # DYNAMICS / DINÁMICA
     # --------------------------------------------------------
 
-    st.markdown("#### Fuerzas")
+    st.markdown("#### 2.2. Fuerzas")
 
     force_columns = st.columns(2, gap="medium")
 
@@ -1350,7 +1350,7 @@ def render_prediction(
     #          communicates the physical state corresponding to t_obs.
     # ========================================================
 
-    st.markdown("#### Representación del sistema")
+    st.markdown("#### 3. Gráficas del sistema")
 
     with st.container(border=True):
         st.plotly_chart(
@@ -1387,7 +1387,10 @@ def render_prediction(
         args=("t_general", float(duration)),
     )
 
-    time_minus, time_input, time_plus = st.columns([1, 1.35, 1], gap="small")
+    # CV3-A · COMPACT TIME ROW / FILA TEMPORAL COMPACTA
+    # ES: Se prioriza el campo central y se estrechan los botones ±0.02 s.
+    # EN: Prioritize the center input and narrow the ±0.02 s buttons.
+    time_minus, time_input, time_plus = st.columns([0.85, 1.6, 0.85], gap="small")
 
     with time_minus:
         st.button(
@@ -1469,7 +1472,8 @@ def render_prediction(
     #          visualmente asociado con la gráfica que controla.
     # English: The title identifies the section first; the slider is
     #          visually associated with the chart it controls.
-    st.markdown("### Posición vs. tiempo")
+    st.markdown("### 4. Gráficas cinemáticas")
+    st.markdown("### 4.1. Posición vs. tiempo")
 
     if release_time is not None:
         if state["time"] >= release_time:
@@ -1525,7 +1529,7 @@ def render_prediction(
     #          visualmente asociado con la gráfica que controla.
     # English: The title identifies the section first; the slider is
     #          visually associated with the chart it controls.
-    st.markdown("### Velocidad vs. tiempo")
+    st.markdown("### 4.2. Velocidad vs. tiempo")
 
     if release_time is not None:
         if state["time"] >= release_time:
@@ -1588,7 +1592,7 @@ def render_prediction(
     #          visualmente asociado con la gráfica que controla.
     # English: The title identifies the section first; the slider is
     #          visually associated with the chart it controls.
-    st.markdown("### Aceleración vs. tiempo")
+    st.markdown("### 4.3. Aceleración vs. tiempo")
 
     if release_time is not None:
         if state["time"] >= release_time:
@@ -1643,7 +1647,7 @@ def render_prediction(
     ## ******************************************************
     ## BALANCE ENERGETICO
     ##****************************************************
-    st.markdown("## 4. Balance energético")
+    st.markdown("## 5. Balance energético")
     
 
     # ========================================================
