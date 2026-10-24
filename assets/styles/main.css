@@ -520,3 +520,53 @@ html, body, [class*="css"] {
         font-size: 16px !important;
     }
 }
+
+/* =========================================================
+   CV3-A · THUMB-FRIENDLY TIME CONTROL / CONTROL TEMPORAL TÁCTIL
+   ES: Barra y tirador más visibles sin aumentar toda la página.
+   EN: More visible track and thumb without enlarging the whole page.
+   ========================================================= */
+@media (max-width: 767px) {
+    /* ES: Espacio táctil sin invadir demasiado el scroll.
+       EN: Touch space without consuming too much scroll area. */
+    [data-testid="stMain"] [data-testid="stSlider"] [data-baseweb="slider"] {
+        min-height: 54px !important;
+        padding: 7px 0 !important;
+        touch-action: pan-y;
+    }
+
+    /* ES: Tirador visual de mayor tamaño para el dedo.
+       EN: Larger visual thumb for finger use. */
+    [data-testid="stMain"] [data-testid="stSlider"] [role="slider"] {
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        border: 3px solid #FFFFFF !important;
+        box-shadow: 0 0 0 2px #1677B8, 0 2px 8px rgba(0,28,67,.2) !important;
+        border-radius: 50% !important;
+    }
+
+    /* ES: Barra más visible; se selecciona el carril de BaseWeb.
+       EN: More visible track; targets the BaseWeb slider track. */
+    [data-testid="stMain"] [data-testid="stSlider"] [data-baseweb="slider"] [data-testid="stSliderTrack"] {
+        min-height: 9px !important;
+        border-radius: 999px !important;
+    }
+
+    /* ES: Botones ±0.02 compactos pero con área táctil suficiente.
+       EN: Compact ±0.02 buttons with adequate touch targets. */
+    [class*="st-key-time_step_minus"] button,
+    [class*="st-key-time_step_plus"] button {
+        min-height: 40px !important;
+        height: 40px !important;
+        padding: 0.25rem 0.2rem !important;
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+        border-radius: 9px !important;
+    }
+    [class*="st-key-time_step_minus"] button p,
+    [class*="st-key-time_step_plus"] button p {
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+    }
+}
