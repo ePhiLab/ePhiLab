@@ -1301,7 +1301,7 @@ def render_prediction(
     # KINEMATICS / CINEMÁTICA
     # --------------------------------------------------------
 
-    st.markdown("### 1.2.A. Variables Cinemáticas")
+    st.markdown("### A. Variables Cinemáticas")
 
     motion_columns = st.columns(3, gap="medium")
 
@@ -1327,7 +1327,7 @@ def render_prediction(
     # DYNAMICS / DINÁMICA
     # --------------------------------------------------------
 
-    st.markdown("### 1.2.B. Fuerzas")
+    st.markdown("### B. Fuerzas")
 
     force_columns = st.columns(2, gap="medium")
 
@@ -1352,7 +1352,7 @@ def render_prediction(
 
     # ES: 1.1, 1.2, 1.3 y 1.4 comparten nivel H2.
     # EN: 1.1, 1.2, 1.3 and 1.4 share heading level H2.
-    st.markdown("## 1.3. Gráficas del sistema")
+    st.markdown("### C. Visualización de predicción")
 
     with st.container(border=True):
         st.plotly_chart(
@@ -1474,8 +1474,8 @@ def render_prediction(
     #          visualmente asociado con la gráfica que controla.
     # English: The title identifies the section first; the slider is
     #          visually associated with the chart it controls.
-    st.markdown("### 1.3. Gráficas cinemáticas")
-    st.markdown("### 1.3.A. Posición vs. tiempo")
+    st.markdown("## 1.3. Gráficas cinemáticas")
+    st.markdown("### A. Posición vs. tiempo")
 
     if release_time is not None:
         if state["time"] >= release_time:
@@ -1531,7 +1531,7 @@ def render_prediction(
     #          visualmente asociado con la gráfica que controla.
     # English: The title identifies the section first; the slider is
     #          visually associated with the chart it controls.
-    st.markdown("### 1.3.B. Velocidad vs. tiempo")
+    st.markdown("### B. Velocidad vs. tiempo")
 
     if release_time is not None:
         if state["time"] >= release_time:
@@ -1594,7 +1594,7 @@ def render_prediction(
     #          visualmente asociado con la gráfica que controla.
     # English: The title identifies the section first; the slider is
     #          visually associated with the chart it controls.
-    st.markdown("### 1.3.C. Aceleración vs. tiempo")
+    st.markdown("### C. Aceleración vs. tiempo")
 
     if release_time is not None:
         if state["time"] >= release_time:
