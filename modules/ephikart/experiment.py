@@ -141,7 +141,7 @@ def _save_measurements() -> None:
 
 def _render_measurements() -> None:
     """ES: Formulario vertical P2-C. EN: Vertical P2-C form."""
-    st.markdown("### 2. Ejecución y mediciones")
+    st.markdown("## 2.2. Ejecución y mediciones")
     st.caption(
         "Registra lo observado durante el ensayo. En P3 se analizarán los "
         "datos del video mediante FizziQ. No inventes valores que no mediste."
@@ -230,7 +230,7 @@ def _build_experiment_record() -> dict | None:
 
 def _render_experiment_handoff() -> None:
     """ES: Descarga y entrega a P3; EN: Download and hand off to P3."""
-    st.markdown("### 3. Conservación del registro y preparación para FizziQ")
+    st.markdown("## 2.3. Conservación del registro y preparación para FizziQ")
     st.caption(
         "Descarga el registro manual del ensayo. El análisis de posiciones "
         "obtenidas del video se realizará posteriormente en FizziQ."
@@ -307,7 +307,7 @@ def render_experiment(
             badge="P2 · Preparación experimental",
         )
 
-    st.markdown("### 1. Preparación experimental")
+    st.markdown("## 2.1. Preparación experimental")
     st.caption(
         "Registra las condiciones del montaje real. Estos datos corresponden "
         "al experimento, no modifican automáticamente la predicción."
