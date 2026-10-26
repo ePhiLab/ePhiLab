@@ -139,9 +139,26 @@ def _velocity_fit(frame: pd.DataFrame) -> dict | None:
             "tmin": float(t.min()), "tmax": float(t.max()), "count": len(t)}
 
 
+def _quadratic_velocity_fit(frame: pd.DataFrame, t0: float) -> dict | None:
+    """ES: Ajuste cuadrático descriptivo de Vx(t). EN: Descriptive quadratic velocity fit."""
+    valid = frame[["t_video_s", "vx_m_s"]].dropna()
+    if len(valid) < 4 or valid["t_video_s"].nunique() < 4:
+        return None
+    t = valid["t_video_s"].to_numpy(dtype=float) - t0
+    v = valid["vx_m_s"].to_numpy(dtype=float)
+    # ES: Centrar el tiempo mejora la estabilidad y simplifica la ecuación.
+    # EN: Relative time improves conditioning and interpretation.
+    a, b, c = np.polyfit(t, v, 2)
+    fitted = a * t**2 + b * t + c
+    ss_tot = float(np.sum((v - v.mean()) ** 2))
+    r2 = float(1 - np.sum((v - fitted) ** 2) / ss_tot) if ss_tot > 1e-15 else None
+    return {"a": float(a), "b": float(b), "c": float(c), "r2": r2,
+            "tmin": float(t.min()), "tmax": float(t.max()), "count": len(t)}
+
+
 def _show_velocity_analysis(saved: dict) -> None:
     st.markdown("## Gráfica experimental de velocidad")
-    st.caption("Tres mediciones del mismo video. Los puntos son datos medidos; las rectas son ajustes independientes de cada régimen.")
+    st.caption("Tres mediciones del mismo video. Los puntos son datos medidos; las curvas permiten comparar ajustes lineales y cuadráticos independientes por régimen.")
     frames = {key: pd.DataFrame(segment["data"]) for key, segment in saved.items()}
     all_times = [float(t) for frame in frames.values() for t in frame["t_video_s"].dropna()]
     if not all_times:
@@ -156,10 +173,14 @@ def _show_velocity_analysis(saved: dict) -> None:
                          key="fizziq_relative_time")
     show_fits = st.toggle("Mostrar ajustes lineales por régimen", value=True,
                           key="fizziq_show_fits")
+    show_quadratic = st.toggle("Mostrar ajuste cuadrático de Vx(t) para comparación", value=True,
+                               key="fizziq_show_quadratic")
+    st.caption("El ajuste cuadrático de velocidad es descriptivo: una velocidad cuadrática implica aceleración variable. Para aceleración constante, Vx(t) es lineal.")
     colors = {"completo": "#627D98", "actuando": "#F59E0B", "liberada": "#1677B8"}
     names = {"completo": "Movimiento completo", "actuando": "Liga actuando", "liberada": "Liga liberada"}
     fig = go.Figure()
     fits = {}
+    quadratic_fits = {}
     for key in ("completo", "actuando", "liberada"):
         if key not in frames:
             continue
@@ -183,6 +204,18 @@ def _show_velocity_analysis(saved: dict) -> None:
                                              y=fit["slope"]*tt+fit["intercept"],
                                              mode="lines", name="Ajuste: "+names[key],
                                              line={"color": colors[key], "width": 3, "dash": "dash"}))
+        if key in ("actuando", "liberada") and show_quadratic:
+            quadratic = _quadratic_velocity_fit(frame, t0)
+            if quadratic is not None:
+                quadratic_fits[key] = quadratic
+                tt_rel = np.linspace(quadratic["tmin"], quadratic["tmax"], 120)
+                vv = quadratic["a"] * tt_rel**2 + quadratic["b"] * tt_rel + quadratic["c"]
+                fig.add_trace(go.Scatter(
+                    x=tt_rel if relative else tt_rel + t0,
+                    y=vv, mode="lines", name="Cuadrático: " + names[key],
+                    line={"color": colors[key], "width": 3, "dash": "dot"},
+                    hovertemplate="t = %{x:.3f} s<br>Vx ajustada = %{y:.4f} m/s<extra>%{fullData.name}</extra>"
+                ))
     fig.update_layout(height=420, margin={"l": 10, "r": 10, "t": 15, "b": 30},
                       xaxis_title="Tiempo desde inicio (s)" if relative else "Tiempo del video (s)",
                       yaxis_title="Velocidad Vx (m/s)", hovermode="closest",
@@ -202,6 +235,18 @@ def _show_velocity_analysis(saved: dict) -> None:
                 b_rel = fit["slope"]*t0 + fit["intercept"]
                 st.write(f"**{names[key]}:** Vx = ({fit['slope']:.5f} m/s²) · t + ({b_rel:.5f} m/s); R² = {r2}; n = {fit['count']}")
         st.caption("En las ecuaciones, t es el tiempo transcurrido desde el instante indicado arriba. Los ajustes describen los datos, no sustituyen la observación del video.")
+    if quadratic_fits:
+        st.markdown("### Ajustes cuadráticos de velocidad (comparación)")
+        for key in ("actuando", "liberada"):
+            if key in quadratic_fits:
+                q = quadratic_fits[key]
+                r2 = f"{q['r2']:.3f}" if q["r2"] is not None else "No definido"
+                st.write(
+                    f"**{names[key]}:** Vx = ({q['a']:.5f}) · t² "
+                    f"+ ({q['b']:.5f}) · t + ({q['c']:.5f}); "
+                    f"R² = {r2}; n = {q['count']}"
+                )
+        st.caption("Aquí t es el tiempo desde que se retira el dedo. Los coeficientes A, B y C tienen unidades m/s³, m/s² y m/s, respectivamente. Un R² mayor no prueba que el modelo cuadrático sea físicamente adecuado.")
     if "actuando" in fits and "liberada" in fits:
         a, b = fits["actuando"], fits["liberada"]
         denominator = a["slope"]-b["slope"]
@@ -298,7 +343,7 @@ def render_fizziq(show_header: bool = True, show_footer: bool = True, show_top_n
             if key in saved:
                 segment = saved[key]
                 st.write(f"**{segment['regime']}** · {segment['filename']} · {len(segment['data'])} mediciones · x: {segment['checks']['valid_position']} · Vx: {segment['checks']['valid_velocity']}")
-        st.caption("Los datos permanecen en la sesión de Streamlit. Todavía no se realiza el ajuste matemático ni se determina el instante de liberación.")
+        st.caption("Los datos permanecen en la sesión de Streamlit. Los ajustes se muestran abajo cuando hay suficientes mediciones; el instante de liberación de la liga no se determina automáticamente.")
     if saved:
         _show_velocity_analysis(saved)
     if show_footer:
