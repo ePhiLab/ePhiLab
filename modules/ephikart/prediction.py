@@ -1185,7 +1185,7 @@ def render_prediction(
                 "Constante elástica de la liga, k (N/m)",
                 min_value=5.0,
                 max_value=100.0,
-                value=30.0,
+                value=10.0,
                 step=1.0,
                 key="kart_spring_constant",
                 help="Rigidez efectiva de la liga.",
