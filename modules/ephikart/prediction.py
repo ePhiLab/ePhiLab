@@ -1183,7 +1183,7 @@ def render_prediction(
         with right_column:
             spring_constant = st.slider(
                 "Constante elástica de la liga, k (N/m)",
-                min_value=20.0,
+                min_value=5.0,
                 max_value=100.0,
                 value=30.0,
                 step=1.0,
