@@ -162,7 +162,7 @@ def normalize_physical_control_state() -> None:
     limits = {
         "kart_natural_length": (0.07, 0.10, 0.085),
         "kart_initial_length": (0.101, 0.20, 0.15),
-        "kart_spring_constant": (5.0, 20.0, 10.0),
+        "kart_spring_constant": (5.0, 200.0, 20.0),
         "kart_duration": (1.0, 5.0, 4.0),
     }
 
@@ -1184,8 +1184,8 @@ def render_prediction(
             spring_constant = st.slider(
                 "Constante elástica de la liga, k (N/m)",
                 min_value=5.0,
-                max_value=100.0,
-                value=10.0,
+                max_value=200.0,
+                value=20.0,
                 step=1.0,
                 key="kart_spring_constant",
                 help="Rigidez efectiva de la liga.",
